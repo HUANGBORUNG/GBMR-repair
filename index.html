@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>專業車務管理系統 (雙系統+時間過濾歸類版)</title>
+    <title>專業車務管理系統 (智慧選時統計版)</title>
     <style>
         :root {
             --primary-color: #2c3e50;
@@ -106,6 +106,20 @@
         .tab-btn.active-repair { background: var(--accent-color); color: white; }
         .tab-btn.active-sale { background: var(--sale-color); color: white; }
 
+        /* 智慧日期羅盤區 */
+        .time-compass-box {
+            background: #fdfefe;
+            border: 1px solid #d4e6f1;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-top: 4px solid var(--info-color);
+        }
+        .time-compass-box h3 { margin: 0 0 10px 0; font-size: 0.95rem; color: var(--info-color); }
+        .compass-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+        .compass-item { display: flex; flex-direction: column; }
+        .compass-item label { font-size: 0.8rem; font-weight: bold; color: #7f8c8d; margin-bottom: 4px; }
+
         /* 表單與欄位設計 */
         .repair-form {
             background: #f8f9fa;
@@ -152,16 +166,12 @@
         .btn-submit { width: 100%; color: white; border: none; padding: 14px; font-size: 1rem; font-weight: bold; border-radius: 4px; cursor: pointer; box-sizing: border-box; }
         .btn-submit.update-btn { background-color: var(--info-color) !important; }
 
-        /* 統計面版可點擊按鈕樣式 */
+        /* 統計面版樣式 */
         .stats-dashboard { margin-bottom: 25px; }
         .stats-dashboard h2 { font-size: 1.1rem; color: var(--primary-color); margin-bottom: 12px; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
 
-        .stats-card { background: #f8f9fa; border-radius: 6px; padding: 12px; border-left: 5px solid var(--primary-color); box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; position: relative; }
-        .stats-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        .stats-card:active { transform: translateY(0); }
-        .stats-card.active-filter-card { outline: 2px solid var(--info-color); background-color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
-
+        .stats-card { background: #f8f9fa; border-radius: 6px; padding: 12px; border-left: 5px solid var(--primary-color); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .stats-card.day { border-left-color: #3498db; }
         .stats-card.week { border-left-color: #9b59b6; }
         .stats-card.month { border-left-color: #27ae60; }
@@ -374,54 +384,75 @@
 
     <hr>
 
-    <!-- 📊 營收與利潤與客數統計面板 (點擊卡片可單獨過濾清單) -->
+    <!-- 📅 智慧型時間羅盤篩選器 (追加核心：自由選日選月選年) -->
+    <div class="time-compass-box">
+        <h3>🔍 智慧時間過濾羅盤 (可自行切換特定日、月、年)</h3>
+        <div class="compass-grid">
+            <div class="compass-item">
+                <label for="compassDate">🎯 選擇「特定日期」篩選</label>
+                <input type="date" id="compassDate" onchange="executeCompassFilter('day')">
+            </div>
+            <div class="compass-item">
+                <label for="compassMonth">📅 選擇「特定月份」篩選</label>
+                <input type="month" id="compassMonth" onchange="executeCompassFilter('month')">
+            </div>
+            <div class="compass-item">
+                <label for="compassYear">⭐ 選擇「特定年份」篩選</label>
+                <select id="compassYear" onchange="executeCompassFilter('year')">
+                    <option value="">-- 請選擇年份 --</option>
+                    <option value="2024">2024 年</option>
+                    <option value="2025">2025 年</option>
+                    <option value="2026">2026 年</option>
+                    <option value="2027">2027 年</option>
+                    <option value="2028">2027 年</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📊 營收與利潤與客數統計面板 -->
     <div class="stats-dashboard">
-        <h2 id="statsDashboardTitle">📊 售後維修財務營業額與利潤統計面板 (💡 點擊下方卡片可直接拉取對應週期清單)</h2>
+        <h2 id="statsDashboardTitle">📊 售後維修財務營業額與利潤統計面板</h2>
         <div class="stats-grid">
-            <!-- 今日 -->
-            <div class="stats-card day" id="card-day" onclick="setTimeFilter('day')">
+            <div class="stats-card day" id="card-day">
                 <h3>
-                    <span>📅 今日統計 (<span id="statDayLabel">--</span>)</span>
+                    <span>📅 日統計 (當前焦點)</span>
                     <span class="customer-badge">台數: <span id="dayCust">0</span></span>
                 </h3>
                 <div class="stats-row" id="dayRevRow"><span class="label">營業額:</span><span class="val" id="dayRev">$0</span></div>
                 <div class="stats-row" id="dayCostRow"><span class="label">總成本:</span><span class="val" id="dayCost">$0</span></div>
                 <div class="stats-row profit" id="dayProfitRow"><span class="label">淨利潤:</span><span class="val" id="dayProfit">$0</span></div>
             </div>
-            <!-- 本週 -->
-            <div class="stats-card week" id="card-week" onclick="setTimeFilter('week')">
+            <div class="stats-card week" id="card-week">
                 <h3>
-                    <span>🗓️ 本週統計</span>
+                    <span>🗓️ 週統計 (聚焦區間)</span>
                     <span class="customer-badge">台數: <span id="weekCust">0</span></span>
                 </h3>
                 <div class="stats-row" id="weekRevRow"><span class="label">營業額:</span><span class="val" id="weekRev">$0</span></div>
                 <div class="stats-row" id="weekCostRow"><span class="label">總成本:</span><span class="val" id="weekCost">$0</span></div>
                 <div class="stats-row profit" id="weekProfitRow"><span class="label">淨利潤:</span><span class="val" id="weekProfit">$0</span></div>
             </div>
-            <!-- 本月 -->
-            <div class="stats-card month" id="card-month" onclick="setTimeFilter('month')">
+            <div class="stats-card month" id="card-month">
                 <h3>
-                    <span>📅 本月統計 (<span id="statMonthLabel">--</span>)</span>
+                    <span>📅 月統計 (聚焦月份)</span>
                     <span class="customer-badge">台數: <span id="monthCust">0</span></span>
                 </h3>
                 <div class="stats-row" id="monthRevRow"><span class="label">營業額:</span><span class="val" id="monthRev">$0</span></div>
                 <div class="stats-row" id="monthCostRow"><span class="label">總成本:</span><span class="val" id="monthCost">$0</span></div>
                 <div class="stats-row profit" id="monthProfitRow"><span class="label">淨利潤:</span><span class="val" id="monthProfit">$0</span></div>
             </div>
-            <!-- 本季 -->
-            <div class="stats-card quarter" id="card-quarter" onclick="setTimeFilter('quarter')">
+            <div class="stats-card quarter" id="card-quarter">
                 <h3>
-                    <span>🏆 本季統計</span>
+                    <span>🏆 季統計 (聚焦季度)</span>
                     <span class="customer-badge">台數: <span id="quarterCust">0</span></span>
                 </h3>
                 <div class="stats-row" id="quarterRevRow"><span class="label">營業額:</span><span class="val" id="quarterRev">$0</span></div>
                 <div class="stats-row" id="quarterCostRow"><span class="label">總成本:</span><span class="val" id="quarterCost">$0</span></div>
                 <div class="stats-row profit" id="quarterProfitRow"><span class="label">淨利潤:</span><span class="val" id="quarterProfit">$0</span></div>
             </div>
-            <!-- 年度 -->
-            <div class="stats-card year" id="card-year" onclick="setTimeFilter('year')">
+            <div class="stats-card year" id="card-year">
                 <h3>
-                    <span>⭐ 今年度統計 (<span id="statYearLabel">--</span>)</span>
+                    <span>⭐ 年統計 (聚焦年度)</span>
                     <span class="customer-badge">台數: <span id="yearCust">0</span></span>
                 </h3>
                 <div class="stats-row" id="yearRevRow"><span class="label">營業額:</span><span class="val" id="yearRev">$0</span></div>
@@ -433,14 +464,14 @@
 
     <!-- 🏍️ 新車系統專用：熱銷品牌歸類面板 -->
     <div class="brand-stats-box hidden" id="brandStatsBox">
-        <h3>🏍️ 品牌販售台數與利潤分佈 (年度累計)</h3>
+        <h3>🏍️ 品牌販售台數與利潤分佈 (聚焦時間累計)</h3>
         <div class="brand-grid" id="brandGridContainer"></div>
     </div>
 
     <!-- 🔍 時間周期篩選提示條 -->
     <div id="filterIndicator" class="filter-status-bar hidden">
-        <span>🔍 目前正在檢視：<span id="filterTimeText" style="color:var(--danger-color);">全部歷史資料</span> 的獨立清單</span>
-        <button class="btn-clear-filter" onclick="setTimeFilter('all')">清除時間過濾 (顯示全部)</button>
+        <span>🔍 目前正在檢視：<span id="filterTimeText" style="color:var(--danger-color);">全部歷史資料</span> 的獨立清單與財務分析</span>
+        <button class="btn-clear-filter" onclick="resetCompassFilter()">清除時間過濾 (顯示全部)</button>
     </div>
 
     <!-- 搜尋與匯出 -->
@@ -497,8 +528,10 @@
     const SHOP_PASSWORD = "8888"; 
     let currentSystemMode = 'repair';
     
-    // 追蹤目前的歷史週期過濾狀態：'all', 'day', 'week', 'month', 'quarter', 'year'
-    let currentTimeFilter = 'all';
+    // 儲存當前時間羅盤的篩選模式與具體時間值
+    // mode: 'all'(看全部), 'day'(特定日), 'month'(特定月), 'year'(特定年)
+    let compassFilterMode = 'all';
+    let compassFilterValue = ''; // 格式可能是 "2026-07-17", "2026-03", "2025"
 
     let repairRecords = [];
     let saleRecords = JSON.parse(localStorage.getItem('proSaleRecords')) || [];
@@ -583,7 +616,7 @@
     window.switchSystemMode = function(mode) {
         currentSystemMode = mode;
         searchInput.value = '';
-        currentTimeFilter = 'all'; // 切換模式時重置時間篩選
+        resetCompassFilter(); // 切換時自動回到全部
 
         const repairTabBtn = document.getElementById('repairTabBtn');
         const saleTabBtn = document.getElementById('saleTabBtn');
@@ -623,57 +656,61 @@
 
             revRows.forEach(r => r.querySelector('.label').textContent = "淨利潤(佣金):");
             costRows.forEach(r => r.classList.add('hidden'));
-            profitRows.forEach(r => r.classList.add('hidden'));
+            profitRows.forEach(r => r.classList.remove('hidden'));
             cancelEditMode();
         }
         renderRecords();
     }
 
-    // --- 📅 設定時間過濾清單邏輯 ---
-    window.setTimeFilter = function(filterType) {
-        currentTimeFilter = filterType;
+    // --- 📅 智慧時間羅盤篩選核心引擎 ---
+    window.executeCompassFilter = function(type) {
+        compassFilterMode = type;
         
-        // 移除所有卡片的選取高亮樣式
-        document.querySelectorAll('.stats-card').forEach(c => c.classList.remove('active-filter-card'));
-
-        if (filterType === 'all') {
-            filterIndicator.classList.add('hidden');
-        } else {
-            // 幫當前選取的統計卡片加上高亮外框
-            document.getElementById('card-' + filterType).classList.add('active-filter-card');
-            filterIndicator.classList.remove('hidden');
-            
-            const txtMap = { 'day': '今日', 'week': '本週', 'month': '本月', 'quarter': '本季', 'year': '今年度' };
-            filterTimeText.textContent = txtMap[filterType];
+        if (type === 'day') {
+            compassFilterValue = document.getElementById('compassDate').value;
+            document.getElementById('compassMonth').value = '';
+            document.getElementById('compassYear').value = '';
+            filterTimeText.textContent = "指定日期 [" + compassFilterValue + "]";
+        } else if (type === 'month') {
+            compassFilterValue = document.getElementById('compassMonth').value; // 格式: "2026-03"
+            document.getElementById('compassDate').value = '';
+            document.getElementById('compassYear').value = '';
+            filterTimeText.textContent = "指定月份 [" + compassFilterValue + "]";
+        } else if (type === 'year') {
+            compassFilterValue = document.getElementById('compassYear').value;
+            document.getElementById('compassDate').value = '';
+            document.getElementById('compassMonth').value = '';
+            if(!compassFilterValue) { resetCompassFilter(); return; }
+            filterTimeText.textContent = "指定年度 [" + compassFilterValue + "年]";
         }
-        // 重新渲染過濾後的清單
+
+        filterIndicator.classList.remove('hidden');
         renderRecords(searchInput.value);
     }
 
-    // 檢查日期是否符合特定的時間週期
-    function isDateInPeriod(dateStr, period) {
-        if (!dateStr) return false;
-        const today = new Date();
-        const todayStr = today.toISOString().slice(0, 10);
-        
-        if (period === 'day') return dateStr === todayStr;
+    window.resetCompassFilter = function() {
+        compassFilterMode = 'all';
+        compassFilterValue = '';
+        document.getElementById('compassDate').value = '';
+        document.getElementById('compassMonth').value = '';
+        document.getElementById('compassYear').value = '';
+        filterIndicator.classList.add('hidden');
+        renderRecords(searchInput.value);
+    }
 
-        const rDate = new Date(dateStr);
-        const currentYear = today.getFullYear();
-        
-        if (period === 'year') return rDate.getFullYear() === currentYear;
-        if (period === 'month') return rDate.getFullYear() === currentYear && (rDate.getMonth() + 1) === (today.getMonth() + 1);
-        if (period === 'quarter') {
-            const currentQuarter = Math.ceil((today.getMonth() + 1) / 3);
-            const rQuarter = Math.ceil((rDate.getMonth() + 1) / 3);
-            return rDate.getFullYear() === currentYear && currentQuarter === rQuarter;
+    // 檢查某一單的日期，是否完全座落在選定的羅盤周期範圍內
+    function checkCompassDateMatch(recordDateStr) {
+        if (compassFilterMode === 'all') return true;
+        if (!recordDateStr) return false;
+
+        if (compassFilterMode === 'day') {
+            return recordDateStr === compassFilterValue;
         }
-        if (period === 'week') {
-            const currentDay = today.getDay(); 
-            const distanceToMonday = currentDay === 0 ? 6 : currentDay - 1; 
-            const monday = new Date(today); monday.setDate(today.getDate() - distanceToMonday); monday.setHours(0,0,0,0);
-            const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); sunday.setHours(23,59,59,999);
-            return rDate >= monday && rDate <= sunday;
+        if (compassFilterMode === 'month') {
+            return recordDateStr.substring(0, 7) === compassFilterValue;
+        }
+        if (compassFilterMode === 'year') {
+            return recordDateStr.substring(0, 4) === compassFilterValue;
         }
         return true;
     }
@@ -709,17 +746,25 @@
         document.getElementById('formTotalProfit').textContent = (formTotalRev - formTotalCost).toLocaleString();
     }
 
-    // --- 📊 大財務與來客數面板重計算引擎 ---
-    function calculateFinanceDashboard() {
-        const today = new Date(); const todayStr = today.toISOString().slice(0, 10);
-        const currentYear = today.getFullYear(); const currentMonth = today.getMonth() + 1; const currentQuarter = Math.ceil(currentMonth / 3);
+    // --- 📊 財務、台數、各品牌分佈大計算機 (深度相容智慧過濾) ---
+    function calculateFinanceDashboard(filteredRecords) {
+        // 設定五大卡片標題日期 (取當前過濾基準或今天)
+        let focusDate = new Date();
+        if (compassFilterMode === 'day' && compassFilterValue) focusDate = new Date(compassFilterValue);
         
-        document.getElementById('statDayLabel').textContent = todayStr.substring(5, 10);
-        document.getElementById('statMonthLabel').textContent = todayStr.substring(0, 7);
-        document.getElementById('statYearLabel').textContent = currentYear + "年";
+        const focusDateStr = focusDate.toISOString().slice(0, 10);
+        const focusYear = focusDate.getFullYear();
+        const focusMonth = focusDate.getMonth() + 1;
+        const focusQuarter = Math.ceil(focusMonth / 3);
+        
+        document.getElementById('statDayLabel').textContent = focusDateStr.substring(5, 10);
+        document.getElementById('statMonthLabel').textContent = focusDateStr.substring(0, 7);
+        document.getElementById('statYearLabel').textContent = focusYear + "年";
 
-        const currentDay = today.getDay(); const distanceToMonday = currentDay === 0 ? 6 : currentDay - 1; 
-        const monday = new Date(today); monday.setDate(today.getDate() - distanceToMonday); monday.setHours(0,0,0,0);
+        // 週統計聚焦區間
+        const currentDay = focusDate.getDay(); 
+        const distanceToMonday = currentDay === 0 ? 6 : currentDay - 1; 
+        const monday = new Date(focusDate); monday.setDate(focusDate.getDate() - distanceToMonday); monday.setHours(0,0,0,0);
         const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); sunday.setHours(23,59,59,999);
 
         let dRev = 0, dCost = 0, dCust = 0;
@@ -731,15 +776,19 @@
         const brandStats = { "光陽": { count: 0, profit: 0 }, "三陽": { count: 0, profit: 0 }, "山葉": { count: 0, profit: 0 }, "比雅久": { count: 0, profit: 0 }, "台鈴": { count: 0, profit: 0 }, "宏佳騰": { count: 0, profit: 0 }, "其他": { count: 0, profit: 0 } };
 
         if (currentSystemMode === 'repair') {
-            repairRecords.forEach(record => {
+            filteredRecords.forEach(record => {
                 const rDateStr = record.date; if(!rDateStr) return;
-                const rDate = new Date(rDateStr); const rev = parseInt(record.totalRev) || 0; const cost = parseInt(record.totalCost) || 0;
-                if (rDateStr === todayStr) { dRev += rev; dCost += cost; dCust++; }
+                const rDate = new Date(rDateStr);
+                const rev = parseInt(record.totalRev) || 0;
+                const cost = parseInt(record.totalCost) || 0;
+
+                if (rDateStr === focusDateStr) { dRev += rev; dCost += cost; dCust++; }
                 if (rDate >= monday && rDate <= sunday) { wRev += rev; wCost += cost; wCust++; }
-                if (rDate.getFullYear() === currentYear && (rDate.getMonth() + 1) === currentMonth) { mRev += rev; mCost += cost; mCust++; }
-                if (rDate.getFullYear() === currentYear && Math.ceil((rDate.getMonth() + 1) / 3) === currentQuarter) { qRev += rev; qCost += cost; qCust++; }
-                if (rDate.getFullYear() === currentYear) { yRev += rev; yCost += cost; yCust++; }
+                if (rDate.getFullYear() === focusYear && (rDate.getMonth() + 1) === focusMonth) { mRev += rev; mCost += cost; mCust++; }
+                if (rDate.getFullYear() === focusYear && Math.ceil((rDate.getMonth() + 1) / 3) === focusQuarter) { qRev += rev; qCost += cost; qCust++; }
+                if (rDate.getFullYear() === focusYear) { yRev += rev; yCost += cost; yCust++; }
             });
+
             document.getElementById('dayCost').textContent = `$${dCost.toLocaleString()}`;
             document.getElementById('dayProfit').textContent = `$${(dRev - dCost).toLocaleString()}`;
             document.getElementById('weekCost').textContent = `$${wCost.toLocaleString()}`;
@@ -751,52 +800,71 @@
             document.getElementById('yearCost').textContent = `$${yCost.toLocaleString()}`;
             document.getElementById('yearProfit').textContent = `$${(yRev - yCost).toLocaleString()}`;
         } else {
-            saleRecords.forEach(record => {
+            filteredRecords.forEach(record => {
                 const rDateStr = record.date; if(!rDateStr) return;
-                const rDate = new Date(rDateStr); const rYear = rDate.getFullYear(); const 佣金 = parseInt(record.saleCommission) || 0;
-                if (rDateStr === todayStr) { dRev += 佣金; dCust++; }
+                const rDate = new Date(rDateStr);
+                const rYear = rDate.getFullYear();
+                const 佣金 = parseInt(record.saleCommission) || 0;
+
+                if (rDateStr === focusDateStr) { dRev += 佣金; dCust++; }
                 if (rDate >= monday && rDate <= sunday) { wRev += 佣金; wCust++; }
-                if (rYear === currentYear && (rDate.getMonth() + 1) === currentMonth) { mRev += 佣金; mCust++; }
-                if (rYear === currentYear && Math.ceil((rDate.getMonth() + 1) / 3) === currentQuarter) { qRev += 佣金; qCust++; }
-                if (rYear === currentYear) { yRev += 佣金; yCust++; }
-                if (rYear === currentYear) {
-                    let b = (record.saleBrand || "其他").trim();
-                    if (brandStats[b] !== undefined) { brandStats[b].count++; brandStats[b].profit += 佣金; } 
-                    else { brandStats["其他"].count++; brandStats["其他"].profit += 佣金; }
+                if (rYear === focusYear && (rDate.getMonth() + 1) === focusMonth) { mRev += 佣金; mCust++; }
+                if (rYear === focusYear && Math.ceil((rDate.getMonth() + 1) / 3) === focusQuarter) { qRev += 佣金; qCust++; }
+                if (rYear === focusYear) { yRev += 佣金; yCust++; }
+
+                // 統計過濾範圍內的品牌歸類數據
+                let b = (record.saleBrand || "其他").trim();
+                if (brandStats[b] !== undefined) {
+                    brandStats[b].count++;
+                    brandStats[b].profit += 佣金;
+                } else {
+                    brandStats["其他"].count++;
+                    brandStats["其他"].profit += 佣金;
                 }
             });
+
+            // 渲染品牌分佈 HTML 面板
             brandGridContainer.innerHTML = '';
             for (let b in brandStats) {
-                const card = document.createElement('div'); card.className = 'brand-card';
-                card.innerHTML = `<div class="brand-title">${b}</div><div class="brand-count">${brandStats[b].count} 台</div><div class="brand-profit">$${brandStats[b].profit.toLocaleString()}</div>`;
+                const card = document.createElement('div');
+                card.className = 'brand-card';
+                card.innerHTML = `
+                    <div class="brand-title">${b}</div>
+                    <div class="brand-count">${brandStats[b].count} 台</div>
+                    <div class="brand-profit">$${brandStats[b].profit.toLocaleString()}</div>
+                `;
                 brandGridContainer.appendChild(card);
             }
         }
-        document.getElementById('dayRev').textContent = `$${dRev.toLocaleString()}`; document.getElementById('dayCust').textContent = dCust;
-        document.getElementById('weekRev').textContent = `$${wRev.toLocaleString()}`; document.getElementById('weekCust').textContent = wCust;
-        document.getElementById('monthRev').textContent = `$${mRev.toLocaleString()}`; document.getElementById('monthCust').textContent = mCust;
-        document.getElementById('quarterRev').textContent = `$${qRev.toLocaleString()}`; document.getElementById('quarterCust').textContent = qCust;
-        document.getElementById('yearRev').textContent = `$${yRev.toLocaleString()}`; document.getElementById('yearCust').textContent = yCust;
+
+        document.getElementById('dayRev').textContent = `$${dRev.toLocaleString()}`;
+        document.getElementById('dayCust').textContent = dCust;
+        document.getElementById('weekRev').textContent = `$${wRev.toLocaleString()}`;
+        document.getElementById('weekCust').textContent = wCust;
+        document.getElementById('monthRev').textContent = `$${mRev.toLocaleString()}`;
+        document.getElementById('monthCust').textContent = mCust;
+        document.getElementById('quarterRev').textContent = `$${qRev.toLocaleString()}`;
+        document.getElementById('quarterCust').textContent = qCust;
+        document.getElementById('yearRev').textContent = `$${yRev.toLocaleString()}`;
+        document.getElementById('yearCust').textContent = yCust;
     }
 
-    // --- 🖥️ 渲染數據清單 (同時處理關鍵字過濾與時間周期過濾) ---
+    // --- 🖥️ 渲染數據列表與卡片 ---
     function renderRecords(filterText = '') {
         const text = filterText.toLowerCase();
 
         if (currentSystemMode === 'repair') {
             recordTableBody.innerHTML = ''; mobileCardsContainer.innerHTML = '';
             
-            // 🧠 雙重過濾：先過濾時間週期，再過濾關鍵字
+            // 🧠 雙重過濾：時間羅盤條件比對 + 關鍵字模糊比對
             const filtered = repairRecords.filter(rec => {
-                const matchTime = (currentTimeFilter === 'all') || isDateInPeriod(rec.date, currentTimeFilter);
-                const matchKeyword = rec.plate.toLowerCase().includes(text) || rec.model.toLowerCase().includes(text) || rec.phone.toLowerCase().includes(text) || rec.items.some(i => i.name.toLowerCase().includes(text));
-                return matchTime && matchKeyword;
+                return checkCompassDateMatch(rec.date) && (rec.plate.toLowerCase().includes(text) || rec.model.toLowerCase().includes(text) || rec.phone.toLowerCase().includes(text) || rec.items.some(i => i.name.toLowerCase().includes(text)));
             });
 
             if (filtered.length === 0) {
-                recordTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#7f8c8d;">無符合條件的維修紀錄</td></tr>`;
-                mobileCardsContainer.innerHTML = `<div style="text-align:center; color:#7f8c8d; padding:20px;">無符合條件的維修紀錄</div>`;
-                calculateFinanceDashboard(); return;
+                recordTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#7f8c8d;">此時間區間內無相符的維修紀錄</td></tr>`;
+                mobileCardsContainer.innerHTML = `<div style="text-align:center; color:#7f8c8d; padding:20px;">此時間區間內無相符的維修紀錄</div>`;
+                calculateFinanceDashboard([]); return;
             }
             filtered.forEach(record => {
                 const profit = record.totalRev - record.totalCost;
@@ -814,7 +882,8 @@
                 `;
                 recordTableBody.appendChild(row);
 
-                const card = document.createElement('div'); card.className = 'mobile-card';
+                const card = document.createElement('div');
+                card.className = 'mobile-card';
                 card.innerHTML = `
                     <div class="card-header"><span class="card-plate">${record.plate.toUpperCase()}</span><span class="card-date">📅 ${record.date}</span></div>
                     <div class="card-row"><span class="label">車型/里程:</span><span class="value">${record.model} (${parseInt(record.mileage).toLocaleString()} km)</span></div>
@@ -826,20 +895,17 @@
                 `;
                 mobileCardsContainer.appendChild(card);
             });
+            calculateFinanceDashboard(filtered);
         } else {
             saleRecordTableBody.innerHTML = ''; mobileSaleCardsContainer.innerHTML = '';
-            
-            // 🧠 新車雙重過濾
             const filtered = saleRecords.filter(rec => {
-                const matchTime = (currentTimeFilter === 'all') || isDateInPeriod(rec.date, currentTimeFilter);
-                const matchKeyword = rec.salePlate.toLowerCase().includes(text) || rec.saleModel.toLowerCase().includes(text) || rec.saleOwnerName.toLowerCase().includes(text) || rec.saleBrand.toLowerCase().includes(text) || rec.saleEngine.toLowerCase().includes(text);
-                return matchTime && matchKeyword;
+                return checkCompassDateMatch(rec.date) && (rec.salePlate.toLowerCase().includes(text) || rec.saleModel.toLowerCase().includes(text) || rec.saleOwnerName.toLowerCase().includes(text) || rec.saleBrand.toLowerCase().includes(text) || rec.saleEngine.toLowerCase().includes(text));
             });
 
             if (filtered.length === 0) {
-                saleRecordTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#7f8c8d;">無符合條件的新車販售紀錄</td></tr>`;
-                mobileSaleCardsContainer.innerHTML = `<div style="text-align:center; color:#7f8c8d; padding:20px;">無符合條件的新車販售紀錄</div>`;
-                calculateFinanceDashboard(); return;
+                saleRecordTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#7f8c8d;">此時間區間內無相符的新車紀錄</td></tr>`;
+                mobileSaleCardsContainer.innerHTML = `<div style="text-align:center; color:#7f8c8d; padding:20px;">此時間區間內無相符的新車紀錄</div>`;
+                calculateFinanceDashboard([]); return;
             }
             filtered.forEach(record => {
                 const row = document.createElement('tr');
@@ -850,7 +916,9 @@
                     <td>調度來源: ${record.saleDealer || '無'}<br><div style="font-size:0.75rem; color:#7f8c8d; max-width:180px;">🎁 配件: ${record.saleAccessories || '無'}</div></td>
                     <td>$${parseInt(record.saleAmount || 0).toLocaleString()}</td>
                     <td><span style="font-size:0.95rem; font-weight:bold; color:var(--success-color);">$${parseInt(record.saleCommission).toLocaleString()}</span></td>
-                    <td><button class="btn-action-edit" style="background-color:var(--sale-color);" onclick="startEditSaleRecord(${record.id})">✏️ 編輯</button><button class="btn-delete" onclick="deleteSaleRecord(${record.id})">刪除</button></td>
+                    <td>
+                        <button class="btn-action-edit" style="background-color:var(--sale-color);" onclick="startEditSaleRecord(${record.id})">✏️ 編輯</button><button class="btn-delete" onclick="deleteSaleRecord(${record.id})">刪除</button>
+                    </td>
                 `;
                 saleRecordTableBody.appendChild(row);
 
@@ -861,12 +929,14 @@
                     <div class="card-row"><span class="label">車主 / 電話:</span><span class="value">${record.saleOwnerName} (<a class="btn-action-phone" href="tel:${record.salePhone}">📞 撥打</a>)</span></div>
                     <div class="card-items" style="background:#fdf2fa; color:#6c3483;"><strong>🎁 贈送配件明細：</strong><br>${record.saleAccessories || '無'}</div>
                     <div class="card-row" style="background:#faf0fc; padding: 6px; border-radius:4px;"><span class="label">車價: $${parseInt(record.saleAmount || 0).toLocaleString()}</span><span class="value" style="color:var(--success-color); font-size: 0.95rem;">實賺佣金: <strong>$${parseInt(record.saleCommission).toLocaleString()}</strong></span></div>
-                    <div class="card-footer" style="justify-content: flex-end;"><button class="btn-action-edit" style="background-color:var(--sale-color);" onclick="startEditSaleRecord(${record.id})">✏️ 編輯</button><button class="btn-delete" onclick="deleteSaleRecord(${record.id})">🗑️ 刪除</button></div>
+                    <div class="card-footer" style="justify-content: flex-end;">
+                        <button class="btn-action-edit" style="background-color:var(--sale-color);" onclick="startEditSaleRecord(${record.id})">✏️ 編輯</button><button class="btn-delete" onclick="deleteSaleRecord(${record.id})">🗑️ 刪除</button>
+                    </div>
                 `;
                 mobileSaleCardsContainer.appendChild(card);
             });
+            calculateFinanceDashboard(filtered);
         }
-        calculateFinanceDashboard();
     }
 
     // --- 🔧 維修表單事件 ---
