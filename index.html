@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>專業車務維修紀錄與利潤統計系統</title>
     <style>
         :root {
@@ -16,7 +16,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, "Microsoft JhengHei";
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft JhengHei", sans-serif;
             background-color: var(--background-color);
             color: var(--text-color);
             margin: 0;
@@ -39,13 +39,13 @@
             text-align: center;
             color: var(--primary-color);
             margin-bottom: 20px;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
         }
 
         /* 密碼鎖介面 */
         #lockSection {
             max-width: 350px;
-            margin: 60px auto;
+            margin: 50px auto;
             background: white;
             padding: 25px;
             border-radius: 8px;
@@ -112,7 +112,6 @@
             font-size: 0.95rem;
             box-sizing: border-box;
             background-color: #fff;
-            -webkit-appearance: none; /* 防止 iOS 內建陰影 */
         }
 
         /* 動態零件清單區 */
@@ -185,7 +184,6 @@
             font-weight: bold;
             border-radius: 4px;
             cursor: pointer;
-            transition: background 0.2s;
             box-sizing: border-box;
         }
 
@@ -204,7 +202,7 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 手機版改成 2x2 網格排列 */
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
         }
 
@@ -274,7 +272,7 @@
             text-align: center;
         }
 
-        /* 表格樣式（預設電腦版，在手機版會被下方 Media Query 隱藏） */
+        /* 預設電腦版表格（手機版會隱藏） */
         .table-container {
             display: block;
             overflow-x: auto;
@@ -297,7 +295,7 @@
             color: white;
         }
 
-        /* 手機版卡片列表容器（預設電腦版隱藏） */
+        /* 手機版卡片 */
         .mobile-cards-list {
             display: none;
         }
@@ -369,17 +367,12 @@
             font-weight: bold;
         }
 
-        .btn-copy-line {
-            background: #edf2f7;
-            border: none;
-            padding: 3px 6px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            cursor: pointer;
+        .hidden {
+            display: none !important;
         }
 
         /* =======================================================
-           📱 手機版專屬樣式調整 (RWD Rework)
+           📱 手機版專屬樣式調整
            ======================================================= */
         @media screen and (max-width: 600px) {
             body {
@@ -389,59 +382,32 @@
                 padding: 10px;
                 border-radius: 0;
             }
-            
-            /* 表單格線強制單欄排列 */
             .form-grid-basic {
                 grid-template-columns: 1fr;
                 gap: 10px;
             }
-
-            /* 零件輸入列改為垂直堆疊排列 */
             .item-row {
-                grid-template-columns: 1fr; /* 強制整列都變單欄 */
+                grid-template-columns: 1fr;
                 gap: 5px;
                 background: #f8f9fa;
                 border: 1px solid #e2e8f0;
                 padding: 10px;
                 border-radius: 6px;
-                position: relative;
             }
-
-            .item-row input {
-                font-size: 0.95rem;
-                padding: 10px;
-            }
-
-            /* 手機版零件刪除按鈕跨滿整列或放在右上角 */
             .btn-remove-item {
                 width: 100%;
-                background-color: var(--danger-color);
                 margin-top: 5px;
                 padding: 10px;
             }
-
-            /* 隱藏電腦版表格，改顯示手機版卡片 */
             .table-container {
                 display: none;
             }
-
             .mobile-cards-list {
                 display: block;
             }
-
-            /* 統計面板文字稍微縮小防止溢出 */
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 8px;
-            }
-            .stats-card {
-                padding: 8px;
-            }
-            .stats-card h3 {
-                font-size: 0.8rem;
-            }
-            .stats-row {
-                font-size: 0.75rem;
             }
         }
     </style>
@@ -450,7 +416,7 @@
 
 <!-- 🔑 密碼鎖畫面 -->
 <div id="lockSection">
-    <h2>🛠️ 店內維修與財務管理系統</h2>
+    <h2>🛠 Rent-car 維修與財務系統</h2>
     <p style="color: #7f8c8d; font-size: 0.9rem;">請輸入店用密碼解鎖</p>
     <input type="password" id="passwordInput" placeholder="請輸入密碼">
     <br>
@@ -497,7 +463,7 @@
             </div>
         </div>
 
-        <!-- 🔧 維修項目明細 (手機自適應堆疊) -->
+        <!-- 🔧 維修項目明細 -->
         <div class="items-section">
             <h3>
                 <span>🛠️ 維修與零件明細</span>
@@ -505,12 +471,15 @@
             </h3>
             <div id="itemsContainer">
                 <div class="item-row">
-                    <input type="text" placeholder="零件名稱 (如: 傳動皮帶)" required class="item-name">
-                    <input type="number" placeholder="數量" value="1" min="1" required class="item-qty" oninput="calculateRowTotals()">
-                    <input type="number" placeholder="單件售價" min="0" required class="item-price" oninput="calculateRowTotals()">
-                    <input type="number" placeholder="單件成本 (0=工資)" value="0" min="0" required class="item-cost" oninput="calculateRowTotals()">
+                    <input type="text" placeholder="零件名稱" required class="item-name">
+                    <input type="number" placeholder="數量" value="1" min="1" required class="item-qty">
+                    <input type="number" placeholder="單件售價" min="0" required class="item-price">
+                    <input type="number" placeholder="單件成本" value="0" min="0" required class="item-cost">
                     <button type="button" class="btn-remove-item" onclick="removeItemRow(this)">✖ 刪除此項</button>
                 </div>
+            </div>
+            <div style="text-align: right; margin-top: 10px;">
+                <button type="button" class="btn-add-item" style="background-color: #16a085;" onclick="calculateFormPreview()">📊 計算此張估價</button>
             </div>
             <div style="text-align: right; margin-top: 10px; font-size: 0.85rem; font-weight: bold; color: #555; line-height: 1.4;">
                 本單小計：總收 $<span id="formTotalRev">0</span> | 成本 $<span id="formTotalCost">0</span><br>
@@ -527,28 +496,24 @@
     <div class="stats-dashboard">
         <h2>📊 財務營業額與利潤統計面板</h2>
         <div class="stats-grid">
-            <!-- 今日 -->
             <div class="stats-card day">
                 <h3>📅 今日統計 (<span id="statDayLabel">--</span>)</h3>
                 <div class="stats-row"><span class="label">營業額:</span><span class="val" id="dayRev">$0</span></div>
                 <div class="stats-row"><span class="label">總成本:</span><span class="val" id="dayCost">$0</span></div>
                 <div class="stats-row profit"><span class="label">淨利潤:</span><span class="val" id="dayProfit">$0</span></div>
             </div>
-            <!-- 本週 -->
             <div class="stats-card week">
                 <h3>🗓️ 本週統計</h3>
                 <div class="stats-row"><span class="label">營業額:</span><span class="val" id="weekRev">$0</span></div>
                 <div class="stats-row"><span class="label">總成本:</span><span class="val" id="weekCost">$0</span></div>
                 <div class="stats-row profit"><span class="label">淨利潤:</span><span class="val" id="weekProfit">$0</span></div>
             </div>
-            <!-- 本月 -->
             <div class="stats-card month">
                 <h3>📅 本月統計 (<span id="statMonthLabel">--</span>)</h3>
                 <div class="stats-row"><span class="label">營業額:</span><span class="val" id="monthRev">$0</span></div>
                 <div class="stats-row"><span class="label">總成本:</span><span class="val" id="monthCost">$0</span></div>
                 <div class="stats-row profit"><span class="label">淨利潤:</span><span class="val" id="monthProfit">$0</span></div>
             </div>
-            <!-- 本季 -->
             <div class="stats-card quarter">
                 <h3>🏆 本季統計</h3>
                 <div class="stats-row"><span class="label">營業額:</span><span class="val" id="quarterRev">$0</span></div>
@@ -561,12 +526,12 @@
     <!-- 搜尋與匯出 -->
     <div class="dashboard">
         <div class="search-box">
-            <input type="text" id="searchInput" placeholder="搜尋車牌、車型、電話、LINE 或零件明細...">
+            <input type="text" id="searchInput" placeholder="搜尋車牌、車型、電話...">
         </div>
         <button class="btn-excel" onclick="exportToCSV()">📊 匯出完整 Excel (CSV)</button>
     </div>
 
-    <!-- 1. 電腦版表格（寬螢幕顯示） -->
+    <!-- 1. 電腦版表格 -->
     <div class="table-container">
         <table>
             <thead>
@@ -579,16 +544,12 @@
                     <th>操作</th>
                 </tr>
             </thead>
-            <tbody id="recordTableBody">
-                <!-- 由 JS 渲染 -->
-            </tbody>
+            <tbody id="recordTableBody"></tbody>
         </table>
     </div>
 
-    <!-- 2. 手機版卡片列表（窄螢幕自動切換顯示） -->
-    <div class="mobile-cards-list" id="mobileCardsContainer">
-        <!-- 由 JS 渲染 -->
-    </div>
+    <!-- 2. 手機版卡片列表 -->
+    <div class="mobile-cards-list" id="mobileCardsContainer"></div>
 </div>
 
 <script>
@@ -623,41 +584,38 @@
         if (e.key === 'Enter') checkPassword();
     });
 
-    // 複製功能
     window.copyText = function(text) {
         navigator.clipboard.writeText(text).then(() => {
-            alert('已複製 LINE ID: ' + text);
+            alert('已複製: ' + text);
         }).catch(err => {
-            alert('複製失敗，請手動選取');
+            alert('LINE ID: ' + text);
         });
     }
 
-    // 新增零件輸入列
     window.addItemRow = function() {
         const row = document.createElement('div');
         row.className = 'item-row';
         row.innerHTML = `
             <input type="text" placeholder="零件名稱" required class="item-name">
-            <input type="number" placeholder="數量" value="1" min="1" required class="item-qty" oninput="calculateRowTotals()">
-            <input type="number" placeholder="單件售價" min="0" required class="item-price" oninput="calculateRowTotals()">
-            <input type="number" placeholder="單件成本" value="0" min="0" required class="item-cost" oninput="calculateRowTotals()">
-            <button type="button" class="btn-remove-item" onclick="removeItemRow(this)">✖ 刪除此項</button>
+            <input type="number" placeholder="數量" value="1" min="1" required class="item-qty">
+            <input type="number" placeholder="單件售價" min="0" required class="item-price">
+            <input type="number" placeholder="單件成本" value="0" min="0" required class="item-cost">
+            <button type="button" class="btn-remove-item" onclick="removeItemRow(this)">✖ 刪除</button>
         `;
         itemsContainer.appendChild(row);
-        calculateRowTotals();
     }
 
     window.removeItemRow = function(btn) {
         const rows = itemsContainer.getElementsByClassName('item-row');
         if (rows.length > 1) {
             btn.parentElement.remove();
-            calculateRowTotals();
         } else {
-            alert('最少必須填寫一項維修或零件項目！');
+            alert('最少填寫一項！');
         }
     }
 
-    window.calculateRowTotals = function() {
+    // 將原本的 oninput 動態觸發，改為按鈕點擊「手動計算」，100% 避免無窮監聽造成當機
+    window.calculateFormPreview = function() {
         let formTotalRev = 0;
         let formTotalCost = 0;
         const rows = itemsContainer.getElementsByClassName('item-row');
@@ -732,7 +690,6 @@
         document.getElementById('quarterProfit').textContent = `$${(qRev - qCost).toLocaleString()}`;
     }
 
-    // 渲染表格和手機版卡片
     function renderRecords(filterText = '') {
         recordTableBody.innerHTML = '';
         mobileCardsContainer.innerHTML = '';
@@ -748,7 +705,7 @@
         });
 
         if (filteredRecords.length === 0) {
-            const noDataHTML = `<div style="text-align:center; color:#7f8c8d; padding: 20px;">查無符合的維修紀錄</div>`;
+            const noDataHTML = `<div style="text-align:center; color:#7f8c8d; padding: 20px;">無維修紀錄</div>`;
             recordTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#7f8c8d;">${noDataHTML}</td></tr>`;
             mobileCardsContainer.innerHTML = noDataHTML;
             return;
@@ -756,12 +713,10 @@
 
         filteredRecords.forEach((record) => {
             const profit = record.totalRev - record.totalCost;
-            
-            // 組合零件明細字串
             let itemsTextList = record.items.map(item => `• ${item.name} x${item.qty} ($${parseInt(item.price).toLocaleString()})`).join('<br>');
             let inspectText = record.inspectDate ? `<br><span style="color:var(--warning-color); font-weight:bold; font-size:0.8rem;">🔍 下次驗車: ${record.inspectDate}</span>` : '';
 
-            // --- 1. 渲染電腦版表格 ---
+            // 電腦表格
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td><strong>${record.date}</strong></td>
@@ -777,7 +732,7 @@
             `;
             recordTableBody.appendChild(row);
 
-            // --- 2. 渲染手機版精美卡片 ---
+            // 手機卡片
             const card = document.createElement('div');
             card.className = 'mobile-card';
             card.innerHTML = `
@@ -786,28 +741,28 @@
                     <span class="card-date">📅 ${record.date}</span>
                 </div>
                 <div class="card-row">
-                    <span class="label">車型 / 里程:</span>
+                    <span class="label">車型/里程:</span>
                     <span class="value">${record.model} (${parseInt(record.mileage).toLocaleString()} km)</span>
                 </div>
                 <div class="card-row">
-                    <span class="label">車主聯絡方式:</span>
+                    <span class="label">聯絡方式:</span>
                     <span class="value">
                         ${record.phone ? `<a class="btn-action-phone" href="tel:${record.phone}">📞 撥號</a>` : '無'} | 
                         ${record.lineId ? `<span onclick="copyText('${record.lineId}')" style="cursor:pointer; text-decoration:underline; color:#27ae60;">💬 LINE</span>` : '無'}
                     </span>
                 </div>
-                ${record.inspectDate ? `<div class="card-row" style="color:var(--warning-color); font-weight:bold;"><span class="label">驗車日期:</span><span class="value">🔍 ${record.inspectDate}</span></div>` : ''}
+                ${record.inspectDate ? `<div class="card-row" style="color:var(--warning-color); font-weight:bold;"><span class="label">下次驗車:</span><span class="value">🔍 ${record.inspectDate}</span></div>` : ''}
                 <div class="card-items">
-                    <strong>維修項目：</strong><br>
+                    <strong>維修明細：</strong><br>
                     ${itemsTextList}
                 </div>
-                <div class="card-row" style="font-size: 0.95rem; background: #eefdfa; padding: 5px; border-radius: 4px; margin-top:5px;">
+                <div class="card-row" style="font-size: 0.95rem; background: #eefdfa; padding: 5px; border-radius: 4px;">
                     <span class="label" style="color:#16a085;">實收: <strong>$${parseInt(record.totalRev).toLocaleString()}</strong></span>
                     <span class="value" style="color:var(--success-color);">淨利: <strong>$${profit.toLocaleString()}</strong></span>
                 </div>
                 <div class="card-footer">
                     <span style="color:#7f8c8d; font-size:0.8rem;">成本: $${parseInt(record.totalCost).toLocaleString()}</span>
-                    <button class="btn-delete" style="padding:4px 8px;" onclick="deleteRecord(${record.id})">🗑️ 刪除紀錄</button>
+                    <button class="btn-delete" style="padding:4px 8px;" onclick="deleteRecord(${record.id})">🗑️ 刪除</button>
                 </div>
             `;
             mobileCardsContainer.appendChild(card);
@@ -816,7 +771,7 @@
         calculateFinanceDashboard();
     }
 
-    // 新增紀錄
+    // 儲存送出
     repairForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const items = [];
@@ -858,13 +813,15 @@
         itemsContainer.innerHTML = `
             <div class="item-row">
                 <input type="text" placeholder="零件名稱" required class="item-name">
-                <input type="number" placeholder="數量" value="1" min="1" required class="item-qty" oninput="calculateRowTotals()">
-                <input type="number" placeholder="單件售價" min="0" required class="item-price" oninput="calculateRowTotals()">
-                <input type="number" placeholder="單件成本" value="0" min="0" required class="item-cost" oninput="calculateRowTotals()">
-                <button type="button" class="btn-remove-item" onclick="removeItemRow(this)">✖ 刪除此項</button>
+                <input type="number" placeholder="數量" value="1" min="1" required class="item-qty">
+                <input type="number" placeholder="單件售價" min="0" required class="item-price">
+                <input type="number" placeholder="單件成本" value="0" min="0" required class="item-cost">
+                <button type="button" class="btn-remove-item" onclick="removeItemRow(this)">✖ 刪除</button>
             </div>
         `;
-        calculateRowTotals();
+        document.getElementById('formTotalRev').textContent = "0";
+        document.getElementById('formTotalCost').textContent = "0";
+        document.getElementById('formTotalProfit').textContent = "0";
     });
 
     window.deleteRecord = function(id) {
