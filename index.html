@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>店內車輛維修紀錄系統</title>
+    <title>店內車輛維修紀錄系統 (安全密碼版)</title>
+    <!-- 引入 Supabase 官方 SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary-color: #2c3e50;
-            --accent-color: #18bc9c;
-            --background-color: #ecf0f1;
+            --accent-color: #3498db;
+            --background-color: #f5f6fa;
             --text-color: #2c3e50;
         }
 
@@ -26,13 +28,37 @@
             background: white;
             padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
         h1 {
             text-align: center;
             color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
             margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
+        /* 登入區塊樣式 */
+        #loginSection {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-top: 5px solid var(--primary-color);
+        }
+
+        #loginSection h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: var(--primary-color);
         }
 
         /* 表單樣式 */
@@ -50,6 +76,7 @@
         .form-group {
             display: flex;
             flex-direction: column;
+            margin-bottom: 10px;
         }
 
         .form-group label {
@@ -80,7 +107,30 @@
         }
 
         .btn-submit:hover {
-            background-color: #128f76;
+            background-color: #2980b9;
+        }
+
+        .btn-login {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .btn-logout {
+            background-color: #7f8c8d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
         }
 
         /* 搜尋與統計區 */
@@ -98,6 +148,26 @@
             width: 250px;
             border: 1px solid #ccc;
             border-radius: 4px;
+        }
+
+        .action-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-excel {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-excel:hover {
+            background-color: #219653;
         }
 
         .total-badge {
@@ -147,12 +217,54 @@
         .btn-delete:hover {
             background-color: #c0392b;
         }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .status-indicator {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 15px;
+        }
+        
+        /* 隱藏區塊用 */
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
+<!-- 🔒 登入區塊 -->
+<div id="loginSection">
+    <h2>🔑 店員登入</h2>
+    <form id="loginForm">
+        <div class="form-group">
+            <label for="loginEmail">帳號 (Email)</label>
+            <input type="email" id="loginEmail" placeholder="請輸入登入帳號" required>
+        </div>
+        <div class="form-group">
+            <label for="loginPassword">密碼</label>
+            <input type="password" id="loginPassword" placeholder="請輸入密碼" required>
+        </div>
+        <button type="submit" class="btn-login" id="loginBtn">登入系統</button>
+    </form>
+</div>
+
+<!-- 🚗 主系統區塊 (預設隱藏) -->
+<div id="mainSystem" class="container hidden">
+    <div class="header-actions">
+        <span id="userWelcome" style="font-weight: bold; color: #555;">歡迎登入</span>
+        <button class="btn-logout" onclick="handleLogout()">🚪 登出</button>
+    </div>
+    
     <h1>🚗 店內車輛維修紀錄系統</h1>
+    <div class="subtitle">🔒 安全密碼版（已開啟防篡改保護）</div>
 
     <!-- 新增紀錄表單 -->
     <form id="repairForm" class="repair-form">
@@ -174,9 +286,9 @@
         </div>
         <div class="form-group" style="grid-column: 1 / -1;">
             <label for="details">維修明細</label>
-            <textarea id="details" rows="2" placeholder="請輸入維修項目，例如：更換機油、前煞車皮..." required></textarea>
+            <textarea id="details" rows="2" placeholder="請輸入維修項目..." required></textarea>
         </div>
-        <button type="submit" class="btn-submit">新增維修紀錄</button>
+        <button type="submit" class="btn-submit" id="submitBtn">新增維修紀錄</button>
     </form>
 
     <hr>
@@ -186,8 +298,11 @@
         <div class="search-box">
             <input type="text" id="searchInput" placeholder="搜尋車牌、車型或明細...">
         </div>
-        <div class="total-badge">
-            目前累計金額：$<span id="totalAmount">0</span>
+        <div class="action-group">
+            <button class="btn-excel" onclick="exportToCSV()">📊 匯出 Excel (CSV)</button>
+            <div class="total-badge">
+                目前累計金額：$<span id="totalAmount">0</span>
+            </div>
         </div>
     </div>
 
@@ -205,30 +320,120 @@
                 </tr>
             </thead>
             <tbody id="recordTableBody">
-                <!-- JavaScript 會動態將資料渲染在這裡 -->
+                <tr><td colspan="6" style="text-align:center;">正在從雲端載入資料...</td></tr>
             </tbody>
         </table>
     </div>
+    <div class="status-indicator" id="statusText">已安全連接</div>
 </div>
 
 <script>
-    // 初始化資料（若 LocalStorage 有資料就載入，沒有就用空陣列）
-    let repairRecords = JSON.parse(localStorage.getItem('repairRecords')) || [];
+    // ==========================================
+    // ⚠️ 請在這裡貼上你在 Supabase 複製的資訊 ⚠️
+    // ==========================================
+    const SUPABASE_URL = "YOUR_SUPABASE_URL"; 
+    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY"; 
+    // ==========================================
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let repairRecords = [];
 
     // 預設日期為今天
     document.getElementById('repairDate').valueAsDate = new Date();
 
+    // 元素綁定
+    const loginSection = document.getElementById('loginSection');
+    const mainSystem = document.getElementById('mainSystem');
+    const loginForm = document.getElementById('loginForm');
     const repairForm = document.getElementById('repairForm');
     const recordTableBody = document.getElementById('recordTableBody');
     const totalAmountSpan = document.getElementById('totalAmount');
     const searchInput = document.getElementById('searchInput');
+    const statusText = document.getElementById('statusText');
+    const submitBtn = document.getElementById('submitBtn');
+    const userWelcome = document.getElementById('userWelcome');
 
-    // 渲染表格與計算總金額
+    // 檢查目前是否已經登入
+    async function checkUserSession() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) {
+            showSystem(session.user.email);
+        } else {
+            showLogin();
+        }
+    }
+
+    // 處理登入
+    loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const loginBtn = document.getElementById('loginBtn');
+
+        loginBtn.disabled = true;
+        loginBtn.textContent = '登入中...';
+
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password,
+        });
+
+        loginBtn.disabled = false;
+        loginBtn.textContent = '登入系統';
+
+        if (error) {
+            alert('登入失敗：' + error.message + '\n請檢查帳號密碼是否正確。');
+        } else {
+            showSystem(data.user.email);
+        }
+    });
+
+    // 處理登出
+    async function handleLogout() {
+        if(confirm('確定要登出系統嗎？')) {
+            await supabaseClient.auth.signOut();
+            showLogin();
+        }
+    }
+
+    // 顯示登入畫面
+    function showLogin() {
+        loginSection.classList.remove('hidden');
+        mainSystem.classList.add('hidden');
+    }
+
+    // 顯示主系統畫面
+    function showSystem(email) {
+        loginSection.classList.add('hidden');
+        mainSystem.classList.remove('hidden');
+        userWelcome.textContent = `👤 目前登入：${email}`;
+        fetchRecords();
+    }
+
+    // 從雲端載入資料
+    async function fetchRecords() {
+        statusText.textContent = '正在下載最新資料...';
+        const { data, error } = await supabaseClient
+            .from('repair_records')
+            .select('*')
+            .order('date', { ascending: false })
+            .order('id', { ascending: false });
+
+        if (error) {
+            statusText.textContent = '❌ 載入失敗，權限不足或網路錯誤';
+            console.error(error);
+        } else {
+            repairRecords = data;
+            renderRecords();
+            statusText.textContent = '✅ 雲端資料已同步 (加密連接)';
+        }
+    }
+
+    // 渲染表格
     function renderRecords(filterText = '') {
         recordTableBody.innerHTML = '';
         let total = 0;
 
-        // 篩選符合關鍵字的紀錄
         const filteredRecords = repairRecords.filter(record => {
             const text = filterText.toLowerCase();
             return record.plate.toLowerCase().includes(text) || 
@@ -236,9 +441,14 @@
                    record.details.toLowerCase().includes(text);
         });
 
-        filteredRecords.forEach((record, index) => {
-            total += parseInt(record.amount);
+        if (filteredRecords.length === 0) {
+            recordTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#95a5a6;">目前沒有維修紀錄</td></tr>`;
+            totalAmountSpan.textContent = '0';
+            return;
+        }
 
+        filteredRecords.forEach((record) => {
+            total += parseInt(record.amount);
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${record.date}</td>
@@ -253,54 +463,82 @@
             recordTableBody.appendChild(row);
         });
 
-        // 更新總金額
         totalAmountSpan.textContent = total.toLocaleString();
     }
 
     // 新增紀錄
-    repairForm.addEventListener('submit', function(e) {
+    repairForm.addEventListener('submit', async function(e) {
         e.preventDefault();
+        submitBtn.disabled = true;
 
         const newRecord = {
-            id: Date.now(), // 用時間戳記當作唯一 ID
             plate: document.getElementById('carPlate').value,
             model: document.getElementById('carModel').value,
             date: document.getElementById('repairDate').value,
-            amount: document.getElementById('amount').value,
+            amount: parseInt(document.getElementById('amount').value),
             details: document.getElementById('details').value
         };
 
-        repairRecords.unshift(newRecord); // 將新紀錄插到最前面
-        saveToLocalStorage();
-        renderRecords();
+        const { error } = await supabaseClient
+            .from('repair_records')
+            .insert([newRecord]);
 
-        // 重設表單（保留日期）
-        const currentDate = document.getElementById('repairDate').value;
-        repairForm.reset();
-        document.getElementById('repairDate').value = currentDate;
+        submitBtn.disabled = false;
+
+        if (error) {
+            alert('上傳失敗！您可能已登出或無權限。');
+        } else {
+            const currentDate = document.getElementById('repairDate').value;
+            repairForm.reset();
+            document.getElementById('repairDate').value = currentDate;
+            await fetchRecords();
+        }
     });
 
     // 刪除紀錄
-    window.deleteRecord = function(id) {
-        if(confirm('確定要刪除這筆紀錄嗎？')) {
-            repairRecords = repairRecords.filter(record => record.id !== id);
-            saveToLocalStorage();
-            renderRecords(searchInput.value);
+    window.deleteRecord = async function(id) {
+        if(confirm('確定要刪除這筆紀錄嗎？此動作將同步從雲端刪除！')) {
+            const { error } = await supabaseClient
+                .from('repair_records')
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                alert('刪除失敗！權限不足。');
+            } else {
+                await fetchRecords();
+            }
         }
     }
 
-    // 搜尋功能
+    // 匯出 Excel (CSV)
+    window.exportToCSV = function() {
+        if (repairRecords.length === 0) {
+            alert('沒有資料可匯出');
+            return;
+        }
+        let csvContent = "\uFEFF" + "日期,車牌號碼,車型,維修明細,金額(元)\n";
+        repairRecords.forEach(record => {
+            let cleanDetails = record.details.replace(/"/g, '""');
+            csvContent += `${record.date},"${record.plate.toUpperCase()}","${record.model}","${cleanDetails}",${record.amount}\n`;
+        });
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `車輛維修紀錄_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // 關鍵字搜尋
     searchInput.addEventListener('input', function() {
         renderRecords(this.value);
     });
 
-    // 儲存到 LocalStorage
-    function saveToLocalStorage() {
-        localStorage.setItem('repairRecords', JSON.stringify(repairRecords));
-    }
-
-    // 首次執行渲染
-    renderRecords();
+    // 啟動程式檢查登入狀態
+    checkUserSession();
 </script>
 
 </body>
