@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>店內車輛維修紀錄系統</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #18bc9c;
+            --background-color: #ecf0f1;
+            --text-color: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, "Microsoft JhengHei";
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+        }
+
+        /* 表單樣式 */
+        .repair-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+            border-left: 5px solid var(--accent-color);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .form-group input, .form-group textarea {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .btn-submit {
+            grid-column: 1 / -1;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-submit:hover {
+            background-color: #128f76;
+        }
+
+        /* 搜尋與統計區 */
+        .dashboard {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            padding: 8px 12px;
+            width: 250px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .total-badge {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        /* 表格樣式 */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .btn-delete {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-delete:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🚗 店內車輛維修紀錄系統</h1>
+
+    <!-- 新增紀錄表單 -->
+    <form id="repairForm" class="repair-form">
+        <div class="form-group">
+            <label for="carPlate">車牌號碼</label>
+            <input type="text" id="carPlate" placeholder="例: ABC-1234" required>
+        </div>
+        <div class="form-group">
+            <label for="carModel">車型</label>
+            <input type="text" id="carModel" placeholder="例: Toyota Altis" required>
+        </div>
+        <div class="form-group">
+            <label for="repairDate">維修日期</label>
+            <input type="date" id="repairDate" required>
+        </div>
+        <div class="form-group">
+            <label for="amount">維修金額 (元)</label>
+            <input type="number" id="amount" placeholder="例: 5500" min="0" required>
+        </div>
+        <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="details">維修明細</label>
+            <textarea id="details" rows="2" placeholder="請輸入維修項目，例如：更換機油、前煞車皮..." required></textarea>
+        </div>
+        <button type="submit" class="btn-submit">新增維修紀錄</button>
+    </form>
+
+    <hr>
+
+    <!-- 搜尋與總額顯示 -->
+    <div class="dashboard">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="搜尋車牌、車型或明細...">
+        </div>
+        <div class="total-badge">
+            目前累計金額：$<span id="totalAmount">0</span>
+        </div>
+    </div>
+
+    <!-- 紀錄列表 -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>日期</th>
+                    <th>車牌號碼</th>
+                    <th>車型</th>
+                    <th>維修明細</th>
+                    <th>金額 (NTD)</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="recordTableBody">
+                <!-- JavaScript 會動態將資料渲染在這裡 -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // 初始化資料（若 LocalStorage 有資料就載入，沒有就用空陣列）
+    let repairRecords = JSON.parse(localStorage.getItem('repairRecords')) || [];
+
+    // 預設日期為今天
+    document.getElementById('repairDate').valueAsDate = new Date();
+
+    const repairForm = document.getElementById('repairForm');
+    const recordTableBody = document.getElementById('recordTableBody');
+    const totalAmountSpan = document.getElementById('totalAmount');
+    const searchInput = document.getElementById('searchInput');
+
+    // 渲染表格與計算總金額
+    function renderRecords(filterText = '') {
+        recordTableBody.innerHTML = '';
+        let total = 0;
+
+        // 篩選符合關鍵字的紀錄
+        const filteredRecords = repairRecords.filter(record => {
+            const text = filterText.toLowerCase();
+            return record.plate.toLowerCase().includes(text) || 
+                   record.model.toLowerCase().includes(text) || 
+                   record.details.toLowerCase().includes(text);
+        });
+
+        filteredRecords.forEach((record, index) => {
+            total += parseInt(record.amount);
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${record.date}</td>
+                <td><strong>${record.plate.toUpperCase()}</strong></td>
+                <td>${record.model}</td>
+                <td>${record.details.replace(/\n/g, '<br>')}</td>
+                <td>$${parseInt(record.amount).toLocaleString()}</td>
+                <td>
+                    <button class="btn-delete" onclick="deleteRecord(${record.id})">刪除</button>
+                </td>
+            `;
+            recordTableBody.appendChild(row);
+        });
+
+        // 更新總金額
+        totalAmountSpan.textContent = total.toLocaleString();
+    }
+
+    // 新增紀錄
+    repairForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const newRecord = {
+            id: Date.now(), // 用時間戳記當作唯一 ID
+            plate: document.getElementById('carPlate').value,
+            model: document.getElementById('carModel').value,
+            date: document.getElementById('repairDate').value,
+            amount: document.getElementById('amount').value,
+            details: document.getElementById('details').value
+        };
+
+        repairRecords.unshift(newRecord); // 將新紀錄插到最前面
+        saveToLocalStorage();
+        renderRecords();
+
+        // 重設表單（保留日期）
+        const currentDate = document.getElementById('repairDate').value;
+        repairForm.reset();
+        document.getElementById('repairDate').value = currentDate;
+    });
+
+    // 刪除紀錄
+    window.deleteRecord = function(id) {
+        if(confirm('確定要刪除這筆紀錄嗎？')) {
+            repairRecords = repairRecords.filter(record => record.id !== id);
+            saveToLocalStorage();
+            renderRecords(searchInput.value);
+        }
+    }
+
+    // 搜尋功能
+    searchInput.addEventListener('input', function() {
+        renderRecords(this.value);
+    });
+
+    // 儲存到 LocalStorage
+    function saveToLocalStorage() {
+        localStorage.setItem('repairRecords', JSON.stringify(repairRecords));
+    }
+
+    // 首次執行渲染
+    renderRecords();
+</script>
+
+</body>
+</html>
