@@ -12,6 +12,7 @@
             --warning-color: #f39c12;
             --success-color: #27ae60;
             --info-color: #2980b9;
+            --year-color: #d35400;
             --background-color: #f1f2f6;
             --text-color: #2c3e50;
         }
@@ -226,15 +227,15 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 10px;
         }
 
         .stats-card {
             background: #f8f9fa;
             border-radius: 6px;
-            padding: 10px;
-            border-left: 4px solid var(--primary-color);
+            padding: 12px;
+            border-left: 5px solid var(--primary-color);
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
@@ -242,11 +243,24 @@
         .stats-card.week { border-left-color: #9b59b6; }
         .stats-card.month { border-left-color: #27ae60; }
         .stats-card.quarter { border-left-color: #e67e22; }
+        .stats-card.year { border-left-color: var(--year-color); }
 
         .stats-card h3 {
             margin: 0 0 8px 0;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: #555;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .customer-badge {
+            background-color: #e2e8f0;
+            color: #4a5568;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
         }
 
         .stats-row {
@@ -532,29 +546,55 @@
     <div class="stats-dashboard">
         <h2>📊 財務營業額與利潤統計面板</h2>
         <div class="stats-grid">
+            <!-- 今日 -->
             <div class="stats-card day">
-                <h3>📅 今日統計 (<span id="statDayLabel">--</span>)</h3>
+                <h3>
+                    <span>📅 今日統計 (<span id="statDayLabel">--</span>)</span>
+                    <span class="customer-badge">客數: <span id="dayCust">0</span></span>
+                </h3>
                 <div class="stats-row"><span class="label">營業額:</span><span class="val" id="dayRev">$0</span></div>
                 <div class="stats-row"><span class="label">總成本:</span><span class="val" id="dayCost">$0</span></div>
                 <div class="stats-row profit"><span class="label">淨利潤:</span><span class="val" id="dayProfit">$0</span></div>
             </div>
+            <!-- 本週 -->
             <div class="stats-card week">
-                <h3>🗓️ 本週統計</h3>
+                <h3>
+                    <span>🗓️ 本週統計</span>
+                    <span class="customer-badge">客數: <span id="weekCust">0</span></span>
+                </h3>
                 <div class="stats-row"><span class="label">營業額:</span><span class="val" id="weekRev">$0</span></div>
                 <div class="stats-row"><span class="label">總成本:</span><span class="val" id="weekCost">$0</span></div>
                 <div class="stats-row profit"><span class="label">淨利潤:</span><span class="val" id="weekProfit">$0</span></div>
             </div>
+            <!-- 本月 -->
             <div class="stats-card month">
-                <h3>📅 本月統計 (<span id="statMonthLabel">--</span>)</h3>
+                <h3>
+                    <span>📅 本月統計 (<span id="statMonthLabel">--</span>)</span>
+                    <span class="customer-badge">客數: <span id="monthCust">0</span></span>
+                </h3>
                 <div class="stats-row"><span class="label">營業額:</span><span class="val" id="monthRev">$0</span></div>
                 <div class="stats-row"><span class="label">總成本:</span><span class="val" id="monthCost">$0</span></div>
                 <div class="stats-row profit"><span class="label">淨利潤:</span><span class="val" id="monthProfit">$0</span></div>
             </div>
+            <!-- 本季 -->
             <div class="stats-card quarter">
-                <h3>🏆 本季統計</h3>
+                <h3>
+                    <span>🏆 本季統計</span>
+                    <span class="customer-badge">客數: <span id="quarterCust">0</span></span>
+                </h3>
                 <div class="stats-row"><span class="label">營業額:</span><span class="val" id="quarterRev">$0</span></div>
                 <div class="stats-row"><span class="label">總成本:</span><span class="val" id="quarterCost">$0</span></div>
                 <div class="stats-row profit"><span class="label">淨利潤:</span><span class="val" id="quarterProfit">$0</span></div>
+            </div>
+            <!-- 年度 -->
+            <div class="stats-card year">
+                <h3>
+                    <span>⭐ 今年度統計 (<span id="statYearLabel">--</span>)</span>
+                    <span class="customer-badge">客數: <span id="yearCust">0</span></span>
+                </h3>
+                <div class="stats-row"><span class="label">營業額:</span><span class="val" id="yearRev">$0</span></div>
+                <div class="stats-row"><span class="label">總成本:</span><span class="val" id="yearCost">$0</span></div>
+                <div class="stats-row profit"><span class="label">淨利潤:</span><span class="val" id="yearProfit">$0</span></div>
             </div>
         </div>
     </div>
@@ -593,7 +633,7 @@
     let repairRecords = [];
 
     // ==========================================
-    // 🚨 終極自救與全自動資料救援引擎 🚨
+    // 🚨 全自動資料救援與遷移轉移邏輯 🚨
     // ==========================================
     try {
         let loaded = false;
@@ -608,8 +648,6 @@
         // 2. 如果沒讀到新版，全盤掃描瀏覽器所有的舊版資料標籤
         if (!loaded) {
             let backupRecords = null;
-            
-            // 搜尋所有可能包含歷史資料的瀏覽器標籤
             const targetKeys = ['repairRecords', 'repair_records', 'proRepairRecords', 'records'];
             for (let k of targetKeys) {
                 let data = localStorage.getItem(k);
@@ -617,21 +655,17 @@
                     let parsed = JSON.parse(data);
                     if (parsed && parsed.length > 0) {
                         backupRecords = parsed;
-                        console.log("找到備份資料於金鑰: " + k);
                         break;
                     }
                 }
             }
 
-            // 如果找到任何一處有舊資料，立刻進行強制救回與格式升級
             if (backupRecords && backupRecords.length > 0) {
                 repairRecords = backupRecords.map(oldRec => {
                     let items = oldRec.items || [];
-                    // 舊資料若沒有金額，就預設用 0，若有就使用
                     let totalRev = parseInt(oldRec.amount) || parseInt(oldRec.totalRev) || 0;
                     let totalCost = parseInt(oldRec.totalCost) || 0;
 
-                    // 如果舊格式只有 details 文字，沒有拆分零件陣列，幫它補齊
                     if (items.length === 0) {
                         items.push({
                             name: oldRec.details || "未細分明細",
@@ -656,7 +690,6 @@
                     };
                 });
 
-                // 將救援升級後的資料，安全地寫入新版資料庫中
                 localStorage.setItem('proRepairRecords', JSON.stringify(repairRecords));
                 alert("🎉 系統偵測到舊資料，已成功自動幫您救回並升級 " + repairRecords.length + " 筆紀錄！");
             }
@@ -745,13 +778,16 @@
         document.getElementById('formTotalProfit').textContent = (formTotalRev - formTotalCost).toLocaleString();
     }
 
+    // 計算財務與來客數 Dashboard (含年統計與年客數)
     function calculateFinanceDashboard() {
         const today = new Date();
         const todayStr = today.toISOString().slice(0, 10);
         
         document.getElementById('statDayLabel').textContent = todayStr.substring(5, 10);
         document.getElementById('statMonthLabel').textContent = todayStr.substring(0, 7);
+        document.getElementById('statYearLabel').textContent = today.getFullYear() + "年";
 
+        // 週統計區間（星期一 ~ 星期日）
         const currentDay = today.getDay(); 
         const distanceToMonday = currentDay === 0 ? 6 : currentDay - 1; 
         const monday = new Date(today);
@@ -762,10 +798,12 @@
         sunday.setDate(monday.getDate() + 6);
         sunday.setHours(23,59,59,999);
 
-        let dRev = 0, dCost = 0;
-        let wRev = 0, wCost = 0;
-        let mRev = 0, mCost = 0;
-        let qRev = 0, qCost = 0;
+        // 營業額、成本及來客數變數
+        let dRev = 0, dCost = 0, dCust = 0;
+        let wRev = 0, wCost = 0, wCust = 0;
+        let mRev = 0, mCost = 0, mCust = 0;
+        let qRev = 0, qCost = 0, qCust = 0;
+        let yRev = 0, yCost = 0, yCust = 0;
 
         const currentYear = today.getFullYear();
         const currentMonth = today.getMonth() + 1;
@@ -781,27 +819,67 @@
             const rev = parseInt(record.totalRev) || 0;
             const cost = parseInt(record.totalCost) || 0;
 
-            if (rDateStr === todayStr) { dRev += rev; dCost += cost; }
-            if (rDate >= monday && rDate <= sunday) { wRev += rev; wCost += cost; }
-            if (rYear === currentYear && rMonth === currentMonth) { mRev += rev; mCost += cost; }
-            if (rYear === currentYear && rQuarter === currentQuarter) { qRev += rev; qCost += cost; }
+            // 1. 今日統計
+            if (rDateStr === todayStr) {
+                dRev += rev;
+                dCost += cost;
+                dCust++;
+            }
+            // 2. 本週統計
+            if (rDate >= monday && rDate <= sunday) {
+                wRev += rev;
+                wCost += cost;
+                wCust++;
+            }
+            // 3. 本月統計
+            if (rYear === currentYear && rMonth === currentMonth) {
+                mRev += rev;
+                mCost += cost;
+                mCust++;
+            }
+            // 4. 本季統計
+            if (rYear === currentYear && rQuarter === currentQuarter) {
+                qRev += rev;
+                qCost += cost;
+                qCust++;
+            }
+            // 5. 年度統計
+            if (rYear === currentYear) {
+                yRev += rev;
+                yCost += cost;
+                yCust++;
+            }
         });
 
+        // 渲染日統計
         document.getElementById('dayRev').textContent = `$${dRev.toLocaleString()}`;
         document.getElementById('dayCost').textContent = `$${dCost.toLocaleString()}`;
         document.getElementById('dayProfit').textContent = `$${(dRev - dCost).toLocaleString()}`;
+        document.getElementById('dayCust').textContent = dCust;
 
+        // 渲染週統計
         document.getElementById('weekRev').textContent = `$${wRev.toLocaleString()}`;
         document.getElementById('weekCost').textContent = `$${wCost.toLocaleString()}`;
         document.getElementById('weekProfit').textContent = `$${(wRev - wCost).toLocaleString()}`;
+        document.getElementById('weekCust').textContent = wCust;
 
+        // 渲染月統計
         document.getElementById('monthRev').textContent = `$${mRev.toLocaleString()}`;
         document.getElementById('monthCost').textContent = `$${mCost.toLocaleString()}`;
         document.getElementById('monthProfit').textContent = `$${(mRev - mCost).toLocaleString()}`;
+        document.getElementById('monthCust').textContent = mCust;
 
+        // 渲染季統計
         document.getElementById('quarterRev').textContent = `$${qRev.toLocaleString()}`;
         document.getElementById('quarterCost').textContent = `$${qCost.toLocaleString()}`;
         document.getElementById('quarterProfit').textContent = `$${(qRev - qCost).toLocaleString()}`;
+        document.getElementById('quarterCust').textContent = qCust;
+
+        // 渲染年度統計
+        document.getElementById('yearRev').textContent = `$${yRev.toLocaleString()}`;
+        document.getElementById('yearCost').textContent = `$${yCost.toLocaleString()}`;
+        document.getElementById('yearProfit').textContent = `$${(yRev - yCost).toLocaleString()}`;
+        document.getElementById('yearCust').textContent = yCust;
     }
 
     function renderRecords(filterText = '') {
