@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>店內車輛維修紀錄系統 (安全密碼版)</title>
-    <!-- 引入 Supabase 官方 SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>店內車輛維修紀錄系統 (密碼防護版)</title>
     <style>
         :root {
             --primary-color: #2c3e50;
-            --accent-color: #3498db;
-            --background-color: #f5f6fa;
+            --accent-color: #18bc9c;
+            --background-color: #ecf0f1;
             --text-color: #2c3e50;
         }
 
@@ -28,37 +26,45 @@
             background: white;
             padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         h1 {
             text-align: center;
             color: var(--primary-color);
-            margin-bottom: 5px;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #7f8c8d;
             margin-bottom: 30px;
-            font-size: 0.9rem;
         }
 
-        /* 登入區塊樣式 */
-        #loginSection {
-            max-width: 400px;
-            margin: 50px auto;
-            padding: 30px;
+        /* 密碼鎖介面 */
+        #lockSection {
+            max-width: 350px;
+            margin: 100px auto;
             background: white;
+            padding: 30px;
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
             border-top: 5px solid var(--primary-color);
         }
 
-        #loginSection h2 {
+        #lockSection input {
+            width: 80%;
+            padding: 10px;
+            margin: 15px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1.1rem;
             text-align: center;
-            margin-bottom: 25px;
-            color: var(--primary-color);
+        }
+
+        .btn-lock {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
         }
 
         /* 表單樣式 */
@@ -76,7 +82,6 @@
         .form-group {
             display: flex;
             flex-direction: column;
-            margin-bottom: 10px;
         }
 
         .form-group label {
@@ -107,30 +112,7 @@
         }
 
         .btn-submit:hover {
-            background-color: #2980b9;
-        }
-
-        .btn-login {
-            width: 100%;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 12px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-
-        .btn-logout {
-            background-color: #7f8c8d;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
+            background-color: #128f76;
         }
 
         /* 搜尋與統計區 */
@@ -164,10 +146,6 @@
             border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
-        }
-
-        .btn-excel:hover {
-            background-color: #219653;
         }
 
         .total-badge {
@@ -214,25 +192,6 @@
             cursor: pointer;
         }
 
-        .btn-delete:hover {
-            background-color: #c0392b;
-        }
-
-        .header-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .status-indicator {
-            text-align: center;
-            font-size: 0.85rem;
-            color: #7f8c8d;
-            margin-top: 15px;
-        }
-        
-        /* 隱藏區塊用 */
         .hidden {
             display: none !important;
         }
@@ -240,31 +199,21 @@
 </head>
 <body>
 
-<!-- 🔒 登入區塊 -->
-<div id="loginSection">
-    <h2>🔑 店員登入</h2>
-    <form id="loginForm">
-        <div class="form-group">
-            <label for="loginEmail">帳號 (Email)</label>
-            <input type="email" id="loginEmail" placeholder="請輸入登入帳號" required>
-        </div>
-        <div class="form-group">
-            <label for="loginPassword">密碼</label>
-            <input type="password" id="loginPassword" placeholder="請輸入密碼" required>
-        </div>
-        <button type="submit" class="btn-login" id="loginBtn">登入系統</button>
-    </form>
+<!-- 🔑 密碼鎖畫面 -->
+<div id="lockSection">
+    <h2>🛠️ 店內維修系統</h2>
+    <p style="color: #7f8c8d; font-size: 0.9rem;">請輸入店用密碼以解鎖資料</p>
+    <input type="password" id="passwordInput" placeholder="請輸入密碼">
+    <br>
+    <button class="btn-lock" onclick="checkPassword()">確認解鎖</button>
 </div>
 
-<!-- 🚗 主系統區塊 (預設隱藏) -->
+<!-- 🚗 主系統畫面 (預設隱藏) -->
 <div id="mainSystem" class="container hidden">
-    <div class="header-actions">
-        <span id="userWelcome" style="font-weight: bold; color: #555;">歡迎登入</span>
-        <button class="btn-logout" onclick="handleLogout()">🚪 登出</button>
+    <div style="text-align: right;">
+        <button class="btn-lock" style="background-color: #7f8c8d;" onclick="lockSystem()">🔒 上鎖並退出</button>
     </div>
-    
     <h1>🚗 店內車輛維修紀錄系統</h1>
-    <div class="subtitle">🔒 安全密碼版（已開啟防篡改保護）</div>
 
     <!-- 新增紀錄表單 -->
     <form id="repairForm" class="repair-form">
@@ -288,7 +237,7 @@
             <label for="details">維修明細</label>
             <textarea id="details" rows="2" placeholder="請輸入維修項目..." required></textarea>
         </div>
-        <button type="submit" class="btn-submit" id="submitBtn">新增維修紀錄</button>
+        <button type="submit" class="btn-submit">新增維修紀錄</button>
     </form>
 
     <hr>
@@ -320,116 +269,54 @@
                 </tr>
             </thead>
             <tbody id="recordTableBody">
-                <tr><td colspan="6" style="text-align:center;">正在從雲端載入資料...</td></tr>
+                <!-- 資料渲染區 -->
             </tbody>
         </table>
     </div>
-    <div class="status-indicator" id="statusText">已安全連接</div>
 </div>
 
 <script>
     // ==========================================
-    // ⚠️ 請在這裡貼上你在 Supabase 複製的資訊 ⚠️
+    // 🔑 你的店用防護密碼（預設為 8888，可自行修改）
     // ==========================================
-    const SUPABASE_URL = "YOUR_SUPABASE_URL"; 
-    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY"; 
+    const SHOP_PASSWORD = "8888"; 
     // ==========================================
 
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    let repairRecords = [];
-
-    // 預設日期為今天
+    let repairRecords = JSON.parse(localStorage.getItem('repairRecords')) || [];
     document.getElementById('repairDate').valueAsDate = new Date();
 
-    // 元素綁定
-    const loginSection = document.getElementById('loginSection');
-    const mainSystem = document.getElementById('mainSystem');
-    const loginForm = document.getElementById('loginForm');
     const repairForm = document.getElementById('repairForm');
     const recordTableBody = document.getElementById('recordTableBody');
     const totalAmountSpan = document.getElementById('totalAmount');
     const searchInput = document.getElementById('searchInput');
-    const statusText = document.getElementById('statusText');
-    const submitBtn = document.getElementById('submitBtn');
-    const userWelcome = document.getElementById('userWelcome');
 
-    // 檢查目前是否已經登入
-    async function checkUserSession() {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session) {
-            showSystem(session.user.email);
+    // 檢查密碼
+    function checkPassword() {
+        const input = document.getElementById('passwordInput').value;
+        if (input === SHOP_PASSWORD) {
+            document.getElementById('lockSection').classList.add('hidden');
+            document.getElementById('mainSystem').classList.remove('hidden');
+            renderRecords();
         } else {
-            showLogin();
+            alert('❌ 密碼錯誤！請重新輸入。');
         }
     }
 
-    // 處理登入
-    loginForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        const loginBtn = document.getElementById('loginBtn');
+    // 鎖定系統
+    function lockSystem() {
+        document.getElementById('passwordInput').value = '';
+        document.getElementById('lockSection').classList.remove('hidden');
+        document.getElementById('mainSystem').classList.add('hidden');
+    }
 
-        loginBtn.disabled = true;
-        loginBtn.textContent = '登入中...';
-
-        const { data, error } = await supabaseClient.auth.signInWithPassword({
-            email: email,
-            password: password,
-        });
-
-        loginBtn.disabled = false;
-        loginBtn.textContent = '登入系統';
-
-        if (error) {
-            alert('登入失敗：' + error.message + '\n請檢查帳號密碼是否正確。');
-        } else {
-            showSystem(data.user.email);
+    // 支援按 Enter 鍵解鎖
+    document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            checkPassword();
         }
     });
 
-    // 處理登出
-    async function handleLogout() {
-        if(confirm('確定要登出系統嗎？')) {
-            await supabaseClient.auth.signOut();
-            showLogin();
-        }
-    }
-
-    // 顯示登入畫面
-    function showLogin() {
-        loginSection.classList.remove('hidden');
-        mainSystem.classList.add('hidden');
-    }
-
-    // 顯示主系統畫面
-    function showSystem(email) {
-        loginSection.classList.add('hidden');
-        mainSystem.classList.remove('hidden');
-        userWelcome.textContent = `👤 目前登入：${email}`;
-        fetchRecords();
-    }
-
-    // 從雲端載入資料
-    async function fetchRecords() {
-        statusText.textContent = '正在下載最新資料...';
-        const { data, error } = await supabaseClient
-            .from('repair_records')
-            .select('*')
-            .order('date', { ascending: false })
-            .order('id', { ascending: false });
-
-        if (error) {
-            statusText.textContent = '❌ 載入失敗，權限不足或網路錯誤';
-            console.error(error);
-        } else {
-            repairRecords = data;
-            renderRecords();
-            statusText.textContent = '✅ 雲端資料已同步 (加密連接)';
-        }
-    }
-
-    // 渲染表格
+    // 渲染表格與計算總金額
     function renderRecords(filterText = '') {
         recordTableBody.innerHTML = '';
         let total = 0;
@@ -440,12 +327,6 @@
                    record.model.toLowerCase().includes(text) || 
                    record.details.toLowerCase().includes(text);
         });
-
-        if (filteredRecords.length === 0) {
-            recordTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#95a5a6;">目前沒有維修紀錄</td></tr>`;
-            totalAmountSpan.textContent = '0';
-            return;
-        }
 
         filteredRecords.forEach((record) => {
             total += parseInt(record.amount);
@@ -467,54 +348,37 @@
     }
 
     // 新增紀錄
-    repairForm.addEventListener('submit', async function(e) {
+    repairForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        submitBtn.disabled = true;
-
         const newRecord = {
+            id: Date.now(),
             plate: document.getElementById('carPlate').value,
             model: document.getElementById('carModel').value,
             date: document.getElementById('repairDate').value,
-            amount: parseInt(document.getElementById('amount').value),
+            amount: document.getElementById('amount').value,
             details: document.getElementById('details').value
         };
-
-        const { error } = await supabaseClient
-            .from('repair_records')
-            .insert([newRecord]);
-
-        submitBtn.disabled = false;
-
-        if (error) {
-            alert('上傳失敗！您可能已登出或無權限。');
-        } else {
-            const currentDate = document.getElementById('repairDate').value;
-            repairForm.reset();
-            document.getElementById('repairDate').value = currentDate;
-            await fetchRecords();
-        }
+        repairRecords.unshift(newRecord);
+        saveToLocalStorage();
+        renderRecords();
+        const currentDate = document.getElementById('repairDate').value;
+        repairForm.reset();
+        document.getElementById('repairDate').value = currentDate;
     });
 
     // 刪除紀錄
-    window.deleteRecord = async function(id) {
-        if(confirm('確定要刪除這筆紀錄嗎？此動作將同步從雲端刪除！')) {
-            const { error } = await supabaseClient
-                .from('repair_records')
-                .delete()
-                .eq('id', id);
-
-            if (error) {
-                alert('刪除失敗！權限不足。');
-            } else {
-                await fetchRecords();
-            }
+    window.deleteRecord = function(id) {
+        if(confirm('確定要刪除這筆紀錄嗎？')) {
+            repairRecords = repairRecords.filter(record => record.id !== id);
+            saveToLocalStorage();
+            renderRecords(searchInput.value);
         }
     }
 
-    // 匯出 Excel (CSV)
+    // 匯出 Excel 功能 (CSV)
     window.exportToCSV = function() {
         if (repairRecords.length === 0) {
-            alert('沒有資料可匯出');
+            alert('目前沒有資料可以匯出唷！');
             return;
         }
         let csvContent = "\uFEFF" + "日期,車牌號碼,車型,維修明細,金額(元)\n";
@@ -532,13 +396,13 @@
         document.body.removeChild(link);
     }
 
-    // 關鍵字搜尋
     searchInput.addEventListener('input', function() {
         renderRecords(this.value);
     });
 
-    // 啟動程式檢查登入狀態
-    checkUserSession();
+    function saveToLocalStorage() {
+        localStorage.setItem('repairRecords', JSON.stringify(repairRecords));
+    }
 </script>
 
 </body>
