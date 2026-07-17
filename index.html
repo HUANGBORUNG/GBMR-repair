@@ -590,11 +590,59 @@
 
 <script>
     const SHOP_PASSWORD = "8888"; 
-    let repairRecords = JSON.parse(localStorage.getItem('proRepairRecords')) || [];
     
-    // 用於追蹤當前正在編輯的紀錄 ID (null 代表新增模式)
-    let editingRecordId = null;
+    // ==========================================
+    // 🔄 舊資料自動救援與遷移轉移邏輯 🔄
+    // ==========================================
+    let repairRecords = [];
+    
+    // 1. 讀取新版資料夾
+    let newRecords = JSON.parse(localStorage.getItem('proRepairRecords'));
+    // 2. 讀取最舊版單機資料夾
+    let oldRecords = JSON.parse(localStorage.getItem('repairRecords'));
 
+    if (newRecords && newRecords.length > 0) {
+        // 如果已經有新版資料，就直接使用新版
+        repairRecords = newRecords;
+    } else if (oldRecords && oldRecords.length > 0) {
+        // 🚨 啟動救援！如果只有舊版資料，自動轉換格式並升級
+        repairRecords = oldRecords.map(oldRec => {
+            // 如果舊資料是極早期格式（無 items 陣列），幫它建立一個 items 明細
+            let items = oldRec.items || [];
+            let totalRev = parseInt(oldRec.amount) || 0;
+            let totalCost = 0;
+
+            if (items.length === 0) {
+                items.push({
+                    name: oldRec.details || "未載入明細",
+                    qty: 1,
+                    price: totalRev,
+                    cost: 0
+                });
+            }
+
+            return {
+                id: oldRec.id || Date.now() + Math.random(),
+                plate: oldRec.plate || "",
+                model: oldRec.model || "",
+                phone: oldRec.phone || "",
+                lineId: oldRec.lineId || "",
+                mileage: oldRec.mileage || "0",
+                date: oldRec.date || new Date().toISOString().slice(0, 10),
+                inspectDate: oldRec.inspectDate || "",
+                items: items,
+                totalRev: totalRev,
+                totalCost: totalCost
+            };
+        });
+        
+        // 將救援後的資料寫入新資料夾，確保未來安全
+        localStorage.setItem('proRepairRecords', JSON.stringify(repairRecords));
+        console.log("舊資料已自動升級並匯入新版系統！筆數：" + repairRecords.length);
+    }
+    // ==========================================
+
+    let editingRecordId = null;
     document.getElementById('repairDate').valueAsDate = new Date();
 
     const repairForm = document.getElementById('repairForm');
@@ -824,20 +872,15 @@
         const record = repairRecords.find(rec => rec.id === id);
         if (!record) return;
 
-        // 設定目前編輯狀態
         editingRecordId = id;
-
-        // 頁面捲動到最上方表單
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        // 改變表單外觀與標題
         repairForm.classList.add('editing-mode');
         formHeaderTitle.innerHTML = `✏️ 正在修改：車牌 ${record.plate.toUpperCase()} 的紀錄`;
         submitBtn.textContent = "🔄 更新此筆維修紀錄";
         submitBtn.className = "btn-submit update-btn";
         cancelEditBtn.classList.remove('hidden');
 
-        // 將資料填入基本欄位
         document.getElementById('carPlate').value = record.plate;
         document.getElementById('carModel').value = record.model;
         document.getElementById('ownerPhone').value = record.phone;
@@ -846,7 +889,6 @@
         document.getElementById('repairDate').value = record.date;
         document.getElementById('inspectDate').value = record.inspectDate || '';
 
-        // 動態生成維修項目列
         itemsContainer.innerHTML = '';
         record.items.forEach(item => {
             const row = document.createElement('div');
@@ -864,22 +906,18 @@
         calculateFormPreview();
     }
 
-    // 取消編輯模式回到新增模式
+    // 取消編輯
     window.cancelEditMode = function() {
         editingRecordId = null;
-
-        // 還原表單樣式
         repairForm.classList.remove('editing-mode');
         formHeaderTitle.innerHTML = "🚗 店內車輛維修紀錄系統";
         submitBtn.textContent = "💾 儲存並新增此筆維修紀錄";
         submitBtn.className = "btn-submit";
         cancelEditBtn.classList.add('hidden');
 
-        // 重設表單
         repairForm.reset();
         document.getElementById('repairDate').valueAsDate = new Date();
 
-        // 零件明細歸零
         itemsContainer.innerHTML = `
             <div class="item-row">
                 <input type="text" placeholder="零件名稱" required class="item-name">
@@ -894,7 +932,7 @@
         document.getElementById('formTotalProfit').textContent = "0";
     }
 
-    // 儲存送出 (支援新增與編輯更新)
+    // 儲存或更新
     repairForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const items = [];
@@ -920,7 +958,6 @@
         const inputInspectDate = document.getElementById('inspectDate').value;
 
         if (editingRecordId !== null) {
-            // 🔄 【修改模式】更新舊紀錄
             repairRecords = repairRecords.map(rec => {
                 if (rec.id === editingRecordId) {
                     return {
@@ -941,7 +978,6 @@
             });
             alert('✅ 紀錄已成功更新！');
         } else {
-            // 💾 【新增模式】新增紀錄
             const newRecord = {
                 id: Date.now(),
                 plate: inputPlate,
@@ -958,21 +994,16 @@
             repairRecords.unshift(newRecord);
         }
 
-        saveToLocalStorage();
-        
-        // 結束並回到新增模式
+        localStorage.setItem('proRepairRecords', JSON.stringify(repairRecords));
         cancelEditMode();
         renderRecords();
     });
 
     window.deleteRecord = function(id) {
         if (confirm('確定要刪除這筆紀錄嗎？')) {
-            // 如果正在編輯這筆被刪除的紀錄，則取消編輯
-            if (editingRecordId === id) {
-                cancelEditMode();
-            }
+            if (editingRecordId === id) cancelEditMode();
             repairRecords = repairRecords.filter(rec => rec.id !== id);
-            saveToLocalStorage();
+            localStorage.setItem('proRepairRecords', JSON.stringify(repairRecords));
             renderRecords(searchInput.value);
         }
     }
@@ -1000,10 +1031,6 @@
     searchInput.addEventListener('input', function() {
         renderRecords(this.value);
     });
-
-    function saveToLocalStorage() {
-        localStorage.setItem('proRepairRecords', JSON.stringify(repairRecords));
-    }
 </script>
 
 </body>
