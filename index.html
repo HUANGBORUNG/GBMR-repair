@@ -566,10 +566,10 @@
         const saleTabBtn = document.getElementById('saleTabBtn');
         const statsDashboardTitle = document.getElementById('statsDashboardTitle');
         
-        // 取得營業額、總成本相關的列元素
         const revRows = [document.getElementById('dayRevRow'), document.getElementById('weekRevRow'), document.getElementById('monthRevRow'), document.getElementById('quarterRevRow'), document.getElementById('yearRevRow')];
         const costRows = [document.getElementById('dayCostRow'), document.getElementById('weekCostRow'), document.getElementById('monthCostRow'), document.getElementById('quarterCostRow'), document.getElementById('yearCostRow')];
-        
+        const profitRows = [document.getElementById('dayProfitRow'), document.getElementById('weekProfitRow'), document.getElementById('monthProfitRow'), document.getElementById('quarterProfitRow'), document.getElementById('yearProfitRow')];
+
         if (mode === 'repair') {
             repairTabBtn.className = "tab-btn active-repair";
             saleTabBtn.className = "tab-btn";
@@ -580,10 +580,11 @@
             saleForm.classList.add('hidden');
             document.getElementById('repairRecordsContainer').classList.remove('hidden');
             document.getElementById('saleRecordsContainer').classList.add('hidden');
-            brandStatsBox.classList.add('hidden'); // 隱藏品牌歸類
+            brandStatsBox.classList.add('hidden');
 
             revRows.forEach(r => r.querySelector('.label').textContent = "營業額:");
             costRows.forEach(r => r.classList.remove('hidden'));
+            profitRows.forEach(r => r.classList.remove('hidden'));
             cancelSaleEditMode();
         } else {
             repairTabBtn.className = "tab-btn";
@@ -595,16 +596,11 @@
             saleForm.classList.remove('hidden');
             document.getElementById('repairRecordsContainer').classList.add('hidden');
             document.getElementById('saleRecordsContainer').classList.remove('hidden');
-            brandStatsBox.classList.remove('hidden'); // 顯示品牌歸類
+            brandStatsBox.classList.remove('hidden');
 
-            // 針對新車販售，將原「營業額」列改為呈現「淨利潤(佣金)」，並隱藏原有的成本列
             revRows.forEach(r => r.querySelector('.label').textContent = "淨利潤(佣金):");
             costRows.forEach(r => r.classList.add('hidden'));
-            document.getElementById('dayProfitRow').classList.add('hidden');
-            document.getElementById('weekProfitRow').classList.add('hidden');
-            document.getElementById('monthProfitRow').classList.add('hidden');
-            document.getElementById('quarterProfitRow').classList.add('hidden');
-            document.getElementById('yearProfitRow').classList.add('hidden');
+            profitRows.forEach(r => r.classList.add('hidden'));
             cancelEditMode();
         }
         renderRecords();
@@ -642,7 +638,7 @@
         document.getElementById('formTotalProfit').textContent = (formTotalRev - formTotalCost).toLocaleString();
     }
 
-    // --- 📊 財務、台數、各品牌分佈大計算機 ---
+    // --- 📊 財務、台數、各品牌分佈大計算機 (修復完成) ---
     function calculateFinanceDashboard() {
         const today = new Date();
         const todayStr = today.toISOString().slice(0, 10);
@@ -665,7 +661,6 @@
         let qRev = 0, qCost = 0, qCust = 0;
         let yRev = 0, yCost = 0, yCust = 0;
 
-        // 品牌歸類初始物件
         const brandStats = {
             "光陽": { count: 0, profit: 0 },
             "三陽": { count: 0, profit: 0 },
@@ -677,7 +672,6 @@
         };
 
         if (currentSystemMode === 'repair') {
-            // 維修計算
             repairRecords.forEach(record => {
                 const rDateStr = record.date; if(!rDateStr) return;
                 const rDate = new Date(rDateStr);
@@ -702,12 +696,12 @@
             document.getElementById('yearCost').textContent = `$${yCost.toLocaleString()}`;
             document.getElementById('yearProfit').textContent = `$${(yRev - yCost).toLocaleString()}`;
         } else {
-            // 新車販售計算（只看佣金=淨利潤，營業額欄位顯示佣金）
+            // 新車獨立統計：【只】讀取 saleRecords 新車資料夾！
             saleRecords.forEach(record => {
                 const rDateStr = record.date; if(!rDateStr) return;
                 const rDate = new Date(rDateStr);
                 const rYear = rDate.getFullYear();
-                const佣金 = parseInt(record.saleCommission) || 0;
+                const 佣金 = parseInt(record.saleCommission) || 0;
 
                 if (rDateStr === todayStr) { dRev += 佣金; dCust++; }
                 if (rDate >= monday && rDate <= sunday) { wRev += 佣金; wCust++; }
@@ -715,9 +709,8 @@
                 if (rYear === currentYear && Math.ceil((rDate.getMonth() + 1) / 3) === currentQuarter) { qRev += 佣金; qCust++; }
                 if (rYear === currentYear) { yRev += 佣金; yCust++; }
 
-                // 統計今年度品牌數據歸類
                 if (rYear === currentYear) {
-                    let b = record.saleBrand;
+                    let b = (record.saleBrand || "其他").trim();
                     if (brandStats[b] !== undefined) {
                         brandStats[b].count++;
                         brandStats[b].profit += 佣金;
@@ -728,7 +721,7 @@
                 }
             });
 
-            // 渲染新車販售品牌分佈 HTML 面板
+            // 產出品牌卡片
             brandGridContainer.innerHTML = '';
             for (let b in brandStats) {
                 const card = document.createElement('div');
@@ -742,7 +735,6 @@
             }
         }
 
-        // 共通渲染營業額(維修為總收，新車為佣金) 與 台數客數
         document.getElementById('dayRev').textContent = `$${dRev.toLocaleString()}`;
         document.getElementById('dayCust').textContent = dCust;
         document.getElementById('weekRev').textContent = `$${wRev.toLocaleString()}`;
@@ -798,7 +790,6 @@
                 mobileCardsContainer.appendChild(card);
             });
         } else {
-            // 新車販售列表渲染
             saleRecordTableBody.innerHTML = ''; mobileSaleCardsContainer.innerHTML = '';
             const filtered = saleRecords.filter(rec => rec.salePlate.toLowerCase().includes(text) || rec.saleModel.toLowerCase().includes(text) || rec.saleOwnerName.toLowerCase().includes(text) || rec.saleBrand.toLowerCase().includes(text) || rec.saleEngine.toLowerCase().includes(text));
 
@@ -933,7 +924,7 @@
     saleForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const dataObj = {
-            saleBrand: document.getElementById('saleBrand').value,
+            saleBrand: document.getElementById('saleBrand').value.trim(),
             saleModel: document.getElementById('saleModel').value,
             salePlate: document.getElementById('salePlate').value || "代辦中",
             saleEngine: document.getElementById('saleEngine').value,
@@ -944,7 +935,7 @@
             saleCommission: parseInt(document.getElementById('saleCommission').value) || 0,
             saleDealer: document.getElementById('saleDealer').value,
             saleAccessories: document.getElementById('saleAccessories').value,
-            totalRev: 0, totalCost: 0 // 結構相容
+            totalRev: 0, totalCost: 0 
         };
 
         if (editingSaleRecordId !== null) {
