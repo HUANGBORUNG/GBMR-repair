@@ -11,6 +11,7 @@
             --danger-color: #e74c3c;
             --warning-color: #f39c12;
             --success-color: #27ae60;
+            --info-color: #2980b9;
             --background-color: #f1f2f6;
             --text-color: #2c3e50;
         }
@@ -84,6 +85,12 @@
             border-radius: 6px;
             margin-bottom: 25px;
             border-left: 5px solid var(--accent-color);
+            transition: all 0.3s ease;
+        }
+
+        .repair-form.editing-mode {
+            border-left-color: var(--info-color);
+            background-color: #f0f4f8;
         }
 
         .form-grid-basic {
@@ -184,6 +191,23 @@
             font-weight: bold;
             border-radius: 4px;
             cursor: pointer;
+            box-sizing: border-box;
+        }
+
+        .btn-submit.update-btn {
+            background-color: var(--info-color);
+        }
+
+        .btn-cancel-edit {
+            width: 100%;
+            background-color: #7f8c8d;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 0.95rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 8px;
             box-sizing: border-box;
         }
 
@@ -367,12 +391,23 @@
             font-weight: bold;
         }
 
+        .btn-action-edit {
+            background-color: var(--info-color);
+            color: white;
+            border: none;
+            padding: 5px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-right: 5px;
+        }
+
         .hidden {
             display: none !important;
         }
 
         /* =======================================================
-           📱 手機版專屬樣式調整
+            📱 手機版專屬樣式調整
            ======================================================= */
         @media screen and (max-width: 600px) {
             body {
@@ -428,9 +463,9 @@
     <div style="text-align: right; margin-bottom: 10px;">
         <button class="btn-lock" style="background-color: #7f8c8d; padding: 6px 12px; font-size: 0.85rem; width: auto;" onclick="lockSystem()">🔒 上鎖並退出</button>
     </div>
-    <h1>🚗 店內車輛維修紀錄系統</h1>
+    <h1 id="formHeaderTitle">🚗 店內車輛維修紀錄系統</h1>
 
-    <!-- 新增紀錄表單 -->
+    <!-- 新增/修改紀錄表單 -->
     <form id="repairForm" class="repair-form">
         <div class="form-grid-basic">
             <div class="form-group">
@@ -475,7 +510,7 @@
                     <input type="number" placeholder="數量" value="1" min="1" required class="item-qty">
                     <input type="number" placeholder="單件售價" min="0" required class="item-price">
                     <input type="number" placeholder="單件成本" value="0" min="0" required class="item-cost">
-                    <button type="button" class="btn-remove-item" onclick="removeItemRow(this)">✖ 刪除此項</button>
+                    <button type="button" class="btn-remove-item" onclick="removeItemRow(this)">✖ 刪除</button>
                 </div>
             </div>
             <div style="text-align: right; margin-top: 10px;">
@@ -487,7 +522,8 @@
             </div>
         </div>
 
-        <button type="submit" class="btn-submit">💾 儲存並新增此筆維修紀錄</button>
+        <button type="submit" class="btn-submit" id="submitBtn">💾 儲存並新增此筆維修紀錄</button>
+        <button type="button" class="btn-cancel-edit hidden" id="cancelEditBtn" onclick="cancelEditMode()">❌ 取消修改</button>
     </form>
 
     <hr>
@@ -555,6 +591,10 @@
 <script>
     const SHOP_PASSWORD = "8888"; 
     let repairRecords = JSON.parse(localStorage.getItem('proRepairRecords')) || [];
+    
+    // 用於追蹤當前正在編輯的紀錄 ID (null 代表新增模式)
+    let editingRecordId = null;
+
     document.getElementById('repairDate').valueAsDate = new Date();
 
     const repairForm = document.getElementById('repairForm');
@@ -562,6 +602,9 @@
     const recordTableBody = document.getElementById('recordTableBody');
     const mobileCardsContainer = document.getElementById('mobileCardsContainer');
     const searchInput = document.getElementById('searchInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const formHeaderTitle = document.getElementById('formHeaderTitle');
 
     function checkPassword() {
         const input = document.getElementById('passwordInput').value;
@@ -614,7 +657,6 @@
         }
     }
 
-    // 將原本的 oninput 動態觸發，改為按鈕點擊「手動計算」，100% 避免無窮監聽造成當機
     window.calculateFormPreview = function() {
         let formTotalRev = 0;
         let formTotalCost = 0;
@@ -728,7 +770,10 @@
                 </td>
                 <td><div style="max-height:100px; overflow-y:auto;">${itemsTextList}</div></td>
                 <td>實收: $${parseInt(record.totalRev).toLocaleString()}<br>淨利: <span class="profit-text">$${profit.toLocaleString()}</span></td>
-                <td><button class="btn-delete" onclick="deleteRecord(${record.id})">刪除</button></td>
+                <td>
+                    <button class="btn-action-edit" onclick="startEditRecord(${record.id})">✏️ 編輯</button>
+                    <button class="btn-delete" onclick="deleteRecord(${record.id})">刪除</button>
+                </td>
             `;
             recordTableBody.appendChild(row);
 
@@ -762,7 +807,10 @@
                 </div>
                 <div class="card-footer">
                     <span style="color:#7f8c8d; font-size:0.8rem;">成本: $${parseInt(record.totalCost).toLocaleString()}</span>
-                    <button class="btn-delete" style="padding:4px 8px;" onclick="deleteRecord(${record.id})">🗑️ 刪除</button>
+                    <div>
+                        <button class="btn-action-edit" style="padding:4px 8px;" onclick="startEditRecord(${record.id})">✏️ 編輯</button>
+                        <button class="btn-delete" style="padding:4px 8px;" onclick="deleteRecord(${record.id})">🗑️ 刪除</button>
+                    </div>
                 </div>
             `;
             mobileCardsContainer.appendChild(card);
@@ -771,7 +819,82 @@
         calculateFinanceDashboard();
     }
 
-    // 儲存送出
+    // 啟動編輯模式
+    window.startEditRecord = function(id) {
+        const record = repairRecords.find(rec => rec.id === id);
+        if (!record) return;
+
+        // 設定目前編輯狀態
+        editingRecordId = id;
+
+        // 頁面捲動到最上方表單
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // 改變表單外觀與標題
+        repairForm.classList.add('editing-mode');
+        formHeaderTitle.innerHTML = `✏️ 正在修改：車牌 ${record.plate.toUpperCase()} 的紀錄`;
+        submitBtn.textContent = "🔄 更新此筆維修紀錄";
+        submitBtn.className = "btn-submit update-btn";
+        cancelEditBtn.classList.remove('hidden');
+
+        // 將資料填入基本欄位
+        document.getElementById('carPlate').value = record.plate;
+        document.getElementById('carModel').value = record.model;
+        document.getElementById('ownerPhone').value = record.phone;
+        document.getElementById('lineId').value = record.lineId;
+        document.getElementById('mileage').value = record.mileage;
+        document.getElementById('repairDate').value = record.date;
+        document.getElementById('inspectDate').value = record.inspectDate || '';
+
+        // 動態生成維修項目列
+        itemsContainer.innerHTML = '';
+        record.items.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <input type="text" placeholder="零件名稱" required class="item-name" value="${item.name}">
+                <input type="number" placeholder="數量" min="1" required class="item-qty" value="${item.qty}">
+                <input type="number" placeholder="單件售價" min="0" required class="item-price" value="${item.price}">
+                <input type="number" placeholder="單件成本" min="0" required class="item-cost" value="${item.cost}">
+                <button type="button" class="btn-remove-item" onclick="removeItemRow(this)">✖ 刪除</button>
+            `;
+            itemsContainer.appendChild(row);
+        });
+
+        calculateFormPreview();
+    }
+
+    // 取消編輯模式回到新增模式
+    window.cancelEditMode = function() {
+        editingRecordId = null;
+
+        // 還原表單樣式
+        repairForm.classList.remove('editing-mode');
+        formHeaderTitle.innerHTML = "🚗 店內車輛維修紀錄系統";
+        submitBtn.textContent = "💾 儲存並新增此筆維修紀錄";
+        submitBtn.className = "btn-submit";
+        cancelEditBtn.classList.add('hidden');
+
+        // 重設表單
+        repairForm.reset();
+        document.getElementById('repairDate').valueAsDate = new Date();
+
+        // 零件明細歸零
+        itemsContainer.innerHTML = `
+            <div class="item-row">
+                <input type="text" placeholder="零件名稱" required class="item-name">
+                <input type="number" placeholder="數量" value="1" min="1" required class="item-qty">
+                <input type="number" placeholder="單件售價" min="0" required class="item-price">
+                <input type="number" placeholder="單件成本" value="0" min="0" required class="item-cost">
+                <button type="button" class="btn-remove-item" onclick="removeItemRow(this)">✖ 刪除</button>
+            </div>
+        `;
+        document.getElementById('formTotalRev').textContent = "0";
+        document.getElementById('formTotalCost').textContent = "0";
+        document.getElementById('formTotalProfit').textContent = "0";
+    }
+
+    // 儲存送出 (支援新增與編輯更新)
     repairForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const items = [];
@@ -788,44 +911,66 @@
             totalCost += qty * cost;
         }
 
-        const newRecord = {
-            id: Date.now(),
-            plate: document.getElementById('carPlate').value,
-            model: document.getElementById('carModel').value,
-            phone: document.getElementById('ownerPhone').value,
-            lineId: document.getElementById('lineId').value,
-            mileage: document.getElementById('mileage').value,
-            date: document.getElementById('repairDate').value,
-            inspectDate: document.getElementById('inspectDate').value,
-            items: items,
-            totalRev: totalRev,
-            totalCost: totalCost
-        };
+        const inputPlate = document.getElementById('carPlate').value;
+        const inputModel = document.getElementById('carModel').value;
+        const inputPhone = document.getElementById('ownerPhone').value;
+        const inputLineId = document.getElementById('lineId').value;
+        const inputMileage = document.getElementById('mileage').value;
+        const inputDate = document.getElementById('repairDate').value;
+        const inputInspectDate = document.getElementById('inspectDate').value;
 
-        repairRecords.unshift(newRecord);
+        if (editingRecordId !== null) {
+            // 🔄 【修改模式】更新舊紀錄
+            repairRecords = repairRecords.map(rec => {
+                if (rec.id === editingRecordId) {
+                    return {
+                        ...rec,
+                        plate: inputPlate,
+                        model: inputModel,
+                        phone: inputPhone,
+                        lineId: inputLineId,
+                        mileage: inputMileage,
+                        date: inputDate,
+                        inspectDate: inputInspectDate,
+                        items: items,
+                        totalRev: totalRev,
+                        totalCost: totalCost
+                    };
+                }
+                return rec;
+            });
+            alert('✅ 紀錄已成功更新！');
+        } else {
+            // 💾 【新增模式】新增紀錄
+            const newRecord = {
+                id: Date.now(),
+                plate: inputPlate,
+                model: inputModel,
+                phone: inputPhone,
+                lineId: inputLineId,
+                mileage: inputMileage,
+                date: inputDate,
+                inspectDate: inputInspectDate,
+                items: items,
+                totalRev: totalRev,
+                totalCost: totalCost
+            };
+            repairRecords.unshift(newRecord);
+        }
+
         saveToLocalStorage();
-        renderRecords();
-
-        const currentDate = document.getElementById('repairDate').value;
-        repairForm.reset();
-        document.getElementById('repairDate').value = currentDate;
         
-        itemsContainer.innerHTML = `
-            <div class="item-row">
-                <input type="text" placeholder="零件名稱" required class="item-name">
-                <input type="number" placeholder="數量" value="1" min="1" required class="item-qty">
-                <input type="number" placeholder="單件售價" min="0" required class="item-price">
-                <input type="number" placeholder="單件成本" value="0" min="0" required class="item-cost">
-                <button type="button" class="btn-remove-item" onclick="removeItemRow(this)">✖ 刪除</button>
-            </div>
-        `;
-        document.getElementById('formTotalRev').textContent = "0";
-        document.getElementById('formTotalCost').textContent = "0";
-        document.getElementById('formTotalProfit').textContent = "0";
+        // 結束並回到新增模式
+        cancelEditMode();
+        renderRecords();
     });
 
     window.deleteRecord = function(id) {
         if (confirm('確定要刪除這筆紀錄嗎？')) {
+            // 如果正在編輯這筆被刪除的紀錄，則取消編輯
+            if (editingRecordId === id) {
+                cancelEditMode();
+            }
             repairRecords = repairRecords.filter(rec => rec.id !== id);
             saveToLocalStorage();
             renderRecords(searchInput.value);
