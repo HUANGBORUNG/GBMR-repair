@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>專業車務管理系統 (維修 + 新車販售雙系統)</title>
+    <title>專業車務管理系統 (雙系統+品牌利潤歸類版)</title>
     <style>
         :root {
             --primary-color: #2c3e50;
@@ -80,7 +80,7 @@
             box-sizing: border-box;
         }
 
-        /* 系統大標籤分頁切換 (Tabs) */
+        /* 系統分頁切換 (Tabs) */
         .system-tabs {
             display: flex;
             gap: 5px;
@@ -103,15 +103,8 @@
             transition: all 0.2s ease;
         }
 
-        .tab-btn.active-repair {
-            background: var(--accent-color);
-            color: white;
-        }
-
-        .tab-btn.active-sale {
-            background: var(--sale-color);
-            color: white;
-        }
+        .tab-btn.active-repair { background: var(--accent-color); color: white; }
+        .tab-btn.active-sale { background: var(--sale-color); color: white; }
 
         /* 表單與欄位設計 */
         .repair-form {
@@ -123,10 +116,7 @@
             transition: all 0.3s ease;
         }
 
-        .repair-form.editing-mode {
-            border-left-color: var(--info-color);
-            background-color: #f0f4f8;
-        }
+        .repair-form.editing-mode { border-left-color: var(--info-color); background-color: #f0f4f8; }
 
         .form-grid-basic {
             display: grid;
@@ -135,365 +125,96 @@
             margin-bottom: 15px;
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            font-size: 0.85rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #555;
-        }
-
-        .form-group input, .form-group textarea {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 0.95rem;
-            box-sizing: border-box;
-            background-color: #fff;
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; color: #555; }
+        .form-group input, .form-group textarea, .form-group select {
+            padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; box-sizing: border-box; background-color: #fff;
         }
 
         /* 動態零件清單區 */
         .items-section {
-            background: #ffffff;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 15px;
+            background: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; margin-bottom: 15px;
         }
 
         .items-section h3 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: var(--primary-color);
-            font-size: 0.95rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            margin-top: 0; margin-bottom: 15px; color: var(--primary-color); font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center;
         }
 
         .item-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr auto;
-            gap: 8px;
-            align-items: center;
-            margin-bottom: 10px;
-            background: #fdfefe;
-            padding: 5px;
-            border-radius: 4px;
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 8px; align-items: center; margin-bottom: 10px; background: #fdfefe; padding: 5px; border-radius: 4px;
         }
 
-        .item-row input {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            width: 100%;
-            box-sizing: border-box;
-        }
+        .item-row input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; width: 100%; box-sizing: border-box; }
 
-        .btn-add-item {
-            background-color: #34495e;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: bold;
-        }
+        .btn-add-item { background-color: #34495e; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: bold; }
+        .btn-remove-item { background-color: var(--danger-color); color: white; border: none; padding: 8px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
-        .btn-remove-item {
-            background-color: var(--danger-color);
-            color: white;
-            border: none;
-            padding: 8px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .btn-submit {
-            width: 100%;
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 14px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            box-sizing: border-box;
-        }
-
-        .btn-submit.update-btn {
-            background-color: var(--info-color);
-        }
-
-        .btn-cancel-edit {
-            width: 100%;
-            background-color: #7f8c8d;
-            color: white;
-            border: none;
-            padding: 10px;
-            font-size: 0.95rem;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 8px;
-            box-sizing: border-box;
-        }
+        .btn-submit { width: 100%; color: white; border: none; padding: 14px; font-size: 1rem; font-weight: bold; border-radius: 4px; cursor: pointer; box-sizing: border-box; }
+        .btn-submit.update-btn { background-color: var(--info-color) !important; }
 
         /* 統計面版樣式 */
-        .stats-dashboard {
-            margin-bottom: 25px;
-        }
+        .stats-dashboard { margin-bottom: 25px; }
+        .stats-dashboard h2 { font-size: 1.1rem; color: var(--primary-color); margin-bottom: 12px; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
 
-        .stats-dashboard h2 {
-            font-size: 1.1rem;
-            color: var(--primary-color);
-            margin-bottom: 12px;
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 5px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-        }
-
-        .stats-card {
-            background: #f8f9fa;
-            border-radius: 6px;
-            padding: 12px;
-            border-left: 5px solid var(--primary-color);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
+        .stats-card { background: #f8f9fa; border-radius: 6px; padding: 12px; border-left: 5px solid var(--primary-color); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .stats-card.day { border-left-color: #3498db; }
         .stats-card.week { border-left-color: #9b59b6; }
         .stats-card.month { border-left-color: #27ae60; }
         .stats-card.quarter { border-left-color: #e67e22; }
         .stats-card.year { border-left-color: var(--year-color); }
 
-        .stats-card h3 {
-            margin: 0 0 8px 0;
-            font-size: 0.9rem;
-            color: #555;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .stats-card h3 { margin: 0 0 8px 0; font-size: 0.9rem; color: #555; display: flex; justify-content: space-between; align-items: center; }
+        .customer-badge { background-color: #e2e8f0; color: #4a5568; padding: 2px 6px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
 
-        .customer-badge {
-            background-color: #e2e8f0;
-            color: #4a5568;
-            padding: 2px 6px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: bold;
-        }
+        .stats-row { display: flex; justify-content: space-between; margin-bottom: 3px; font-size: 0.8rem; }
+        .stats-row span.label { color: #7f8c8d; }
+        .stats-row span.val { font-weight: bold; }
+        .stats-row.profit span.val { color: var(--success-color); font-size: 0.95rem; }
 
-        .stats-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 3px;
-            font-size: 0.8rem;
-        }
-
-        .stats-row span.label {
-            color: #7f8c8d;
-        }
-
-        .stats-row span.val {
-            font-weight: bold;
-        }
-
-        .stats-row.profit span.val {
-            color: var(--success-color);
-        }
+        /* 品牌歸類面板 */
+        .brand-stats-box { background: #fdfefe; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 25px; }
+        .brand-stats-box h3 { margin-top: 0; margin-bottom: 15px; font-size: 1rem; color: var(--sale-color); border-bottom: 1px dashed #e2e8f0; padding-bottom: 5px; }
+        .brand-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+        .brand-card { background: #fbfbfc; border: 1px solid #edf2f7; border-radius: 6px; padding: 10px; text-align: center; }
+        .brand-card .brand-title { font-size: 0.85rem; font-weight: bold; color: #4a5568; }
+        .brand-card .brand-count { font-size: 1.1rem; font-weight: bold; color: var(--sale-color); margin: 5px 0; }
+        .brand-card .brand-profit { font-size: 0.8rem; color: var(--success-color); font-weight: bold; }
 
         /* 搜尋與匯出 */
-        .dashboard {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
+        .dashboard { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .search-box input { padding: 10px; width: 100%; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .btn-excel { background-color: #27ae60; color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; text-align: center; }
 
-        .search-box input {
-            padding: 10px;
-            width: 100%;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
+        /* 表格樣式 */
+        .table-container { display: block; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #ddd; vertical-align: top; line-height: 1.4; }
+        th { background-color: var(--primary-color); color: white; }
 
-        .btn-excel {
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            text-align: center;
-        }
+        .mobile-cards-list { display: none; }
+        .mobile-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .card-header { display: flex; justify-content: space-between; border-bottom: 1px solid #edf2f7; padding-bottom: 8px; margin-bottom: 10px; }
+        .card-plate { font-size: 1.1rem; font-weight: bold; color: var(--primary-color); }
+        .card-date { font-size: 0.85rem; color: #718096; }
+        .card-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.9rem; }
+        .card-row .label { color: #718096; }
+        .card-row .value { font-weight: bold; }
+        .card-items { background: #f7fafc; padding: 10px; border-radius: 6px; margin: 10px 0; font-size: 0.85rem; line-height: 1.4; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #edf2f7; padding-top: 8px; margin-top: 10px; }
+        .btn-action-phone { color: #3182ce; text-decoration: underline; font-weight: bold; }
+        .btn-action-edit { color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-right: 5px; }
+        .hidden { display: none !important; }
 
-        /* 預設電腦版表格（手機版會隱藏） */
-        .table-container {
-            display: block;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-        }
-
-        th, td {
-            padding: 10px 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-            vertical-align: top;
-            line-height: 1.4;
-        }
-
-        th {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        /* 手機版卡片 */
-        .mobile-cards-list {
-            display: none;
-        }
-
-        .mobile-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid #edf2f7;
-            padding-bottom: 8px;
-            margin-bottom: 10px;
-        }
-
-        .card-plate {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        .card-date {
-            font-size: 0.85rem;
-            color: #718096;
-        }
-
-        .card-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 6px;
-            font-size: 0.9rem;
-        }
-
-        .card-row .label {
-            color: #718096;
-        }
-
-        .card-row .value {
-            font-weight: bold;
-        }
-
-        .card-items {
-            background: #f7fafc;
-            padding: 10px;
-            border-radius: 6px;
-            margin: 10px 0;
-            font-size: 0.85rem;
-            line-height: 1.4;
-        }
-
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-top: 1px solid #edf2f7;
-            padding-top: 8px;
-            margin-top: 10px;
-        }
-
-        .btn-action-phone {
-            color: #3182ce;
-            text-decoration: underline;
-            font-weight: bold;
-        }
-
-        .btn-action-edit {
-            background-color: var(--info-color);
-            color: white;
-            border: none;
-            padding: 5px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            margin-right: 5px;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        /* =======================================================
-            📱 手機版專屬樣式調整
-           ======================================================= */
         @media screen and (max-width: 600px) {
-            body {
-                padding: 5px;
-            }
-            .container {
-                padding: 10px;
-                border-radius: 0;
-            }
-            .form-grid-basic {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-            .item-row {
-                grid-template-columns: 1fr;
-                gap: 5px;
-                background: #f8f9fa;
-                border: 1px solid #e2e8f0;
-                padding: 10px;
-                border-radius: 6px;
-            }
-            .btn-remove-item {
-                width: 100%;
-                margin-top: 5px;
-                padding: 10px;
-            }
-            .table-container {
-                display: none;
-            }
-            .mobile-cards-list {
-                display: block;
-            }
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
-            }
+            body { padding: 5px; }
+            .container { padding: 10px; border-radius: 0; }
+            .form-grid-basic { grid-template-columns: 1fr; gap: 10px; }
+            .item-row { grid-template-columns: 1fr; gap: 5px; background: #f8f9fa; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; }
+            .btn-remove-item { width: 100%; margin-top: 5px; padding: 10px; }
+            .table-container { display: none; }
+            .mobile-cards-list { display: block; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
         }
     </style>
 </head>
@@ -508,7 +229,7 @@
     <button class="btn-lock" onclick="checkPassword()">確認解鎖</button>
 </div>
 
-<!-- 🚗 主系統畫面 (預設隱藏) -->
+<!-- 🚗 主系統畫面 -->
 <div id="mainSystem" class="container hidden">
     <div style="text-align: right; margin-bottom: 10px;">
         <button class="btn-lock" style="background-color: #7f8c8d; padding: 6px 12px; font-size: 0.85rem; width: auto;" onclick="lockSystem()">🔒 上鎖並退出</button>
@@ -522,7 +243,7 @@
 
     <h1 id="formHeaderTitle">🚗 店內車輛維修紀錄系統</h1>
 
-    <!-- 1️⃣ 表單 A：售後維修系統 (預設顯示) -->
+    <!-- 1️⃣ 表單 A：售後維修系統 -->
     <form id="repairForm" class="repair-form">
         <div class="form-grid-basic">
             <div class="form-group">
@@ -555,7 +276,6 @@
             </div>
         </div>
 
-        <!-- 🔧 維修項目動態零件明細 -->
         <div class="items-section">
             <h3>
                 <span>🛠️ 維修與零件明細</span>
@@ -579,53 +299,65 @@
             </div>
         </div>
 
-        <button type="submit" class="btn-submit" id="submitBtn">💾 儲存並新增此筆維修紀錄</button>
+        <button type="submit" class="btn-submit" id="submitBtn" style="background-color: var(--accent-color);">💾 儲存並新增此筆維修紀錄</button>
         <button type="button" class="btn-cancel-edit hidden" id="cancelEditBtn" onclick="cancelEditMode()">❌ 取消修改</button>
     </form>
 
-    <!-- 2️⃣ 表單 B：全新車販售系統 (預設隱藏) -->
+    <!-- 2️⃣ 表單 B：全新車販售系統 -->
     <form id="saleForm" class="repair-form hidden" style="border-left-color: var(--sale-color);">
         <div class="form-grid-basic">
             <div class="form-group">
-                <label for="saleBrand">品牌 *</label>
-                <input type="text" id="saleBrand" placeholder="例: YAMAHA / KYMCO">
+                <label for="saleBrand">選擇品牌 *</label>
+                <select id="saleBrand" required>
+                    <option value="光陽">光陽 (KYMCO)</option>
+                    <option value="三陽">三陽 (SYM)</option>
+                    <option value="山葉">山葉 (YAMAHA)</option>
+                    <option value="比雅久">比雅久 (PGO)</option>
+                    <option value="台鈴">台鈴 (SUZUKI)</option>
+                    <option value="宏佳騰">宏佳騰 (AEON)</option>
+                    <option value="其他">其他品牌</option>
+                </select>
             </div>
             <div class="form-group">
                 <label for="saleModel">型號 *</label>
-                <input type="text" id="saleModel" placeholder="例: 六代勁戰 ABS版">
+                <input type="text" id="saleModel" placeholder="例: Jet SL+ 158" required>
             </div>
             <div class="form-group">
-                <label for="salePlate">車牌號碼</label>
+                <label for="salePlate">車牌號碼 (選填)</label>
                 <input type="text" id="salePlate" placeholder="例: NMM-8888">
             </div>
             <div class="form-group">
                 <label for="saleEngine">引擎號碼 *</label>
-                <input type="text" id="saleEngine" placeholder="請輸入引擎號碼">
+                <input type="text" id="saleEngine" placeholder="請輸入引擎號碼" required>
             </div>
             <div class="form-group">
                 <label for="saleOwnerName">車主姓名 *</label>
-                <input type="text" id="saleOwnerName" placeholder="請輸入車主姓名">
+                <input type="text" id="saleOwnerName" placeholder="請輸入車主姓名" required>
             </div>
             <div class="form-group">
                 <label for="salePhone">行動電話 *</label>
-                <input type="tel" id="salePhone" placeholder="例: 0912345678">
+                <input type="tel" id="salePhone" placeholder="例: 0912345678" required>
             </div>
             <div class="form-group">
                 <label for="saleDate">販售日期 *</label>
-                <input type="date" id="saleDate">
+                <input type="date" id="saleDate" required>
             </div>
             <div class="form-group">
-                <label for="saleAmount">販售金額 *</label>
+                <label for="saleAmount">販售車價 (元)</label>
                 <input type="number" id="saleAmount" placeholder="實際賣出金額" min="0">
             </div>
             <div class="form-group">
+                <label for="saleCommission">車輛佣金 (即淨利潤) *</label>
+                <input type="number" id="saleCommission" placeholder="這台新車店內實賺利潤" min="0" required>
+            </div>
+            <div class="form-group">
                 <label for="saleDealer">調度車行 (來源)</label>
-                <input type="text" id="saleDealer" placeholder="例: 某某大盤/總經銷車行">
+                <input type="text" id="saleDealer" placeholder="例: 某某總經銷">
             </div>
         </div>
         <div class="form-group" style="margin-bottom: 15px;">
             <label for="saleAccessories">🎁 販售贈送的配件</label>
-            <textarea id="saleAccessories" rows="2" placeholder="例: 贈送安全帽、大鎖、手機架、三次免工資券..."></textarea>
+            <textarea id="saleAccessories" rows="2" placeholder="例: 贈送安全帽、大鎖、手機架..."></textarea>
         </div>
 
         <button type="submit" class="btn-submit" id="saleSubmitBtn" style="background-color: var(--sale-color);">🏍️ 儲存並新增此筆新車販售紀錄</button>
@@ -634,55 +366,63 @@
 
     <hr>
 
-    <!-- 📊 營收與利潤與客數統計面板 (會隨系統切換顯示不同的營業额與客數) -->
+    <!-- 📊 營收與利潤與客數統計面板 -->
     <div class="stats-dashboard">
         <h2 id="statsDashboardTitle">📊 售後維修財務營業額與利潤統計面板</h2>
         <div class="stats-grid">
             <div class="stats-card day">
                 <h3>
                     <span>📅 今日統計 (<span id="statDayLabel">--</span>)</span>
-                    <span class="customer-badge">工單/客數: <span id="dayCust">0</span></span>
+                    <span class="customer-badge">台數/客數: <span id="dayCust">0</span></span>
                 </h3>
-                <div class="stats-row"><span class="label">營業額:</span><span class="val" id="dayRev">$0</span></div>
+                <div class="stats-row" id="dayRevRow"><span class="label">營業額:</span><span class="val" id="dayRev">$0</span></div>
                 <div class="stats-row" id="dayCostRow"><span class="label">總成本:</span><span class="val" id="dayCost">$0</span></div>
                 <div class="stats-row profit" id="dayProfitRow"><span class="label">淨利潤:</span><span class="val" id="dayProfit">$0</span></div>
             </div>
             <div class="stats-card week">
                 <h3>
                     <span>🗓️ 本週統計</span>
-                    <span class="customer-badge">工單/客數: <span id="weekCust">0</span></span>
+                    <span class="customer-badge">台數/客數: <span id="weekCust">0</span></span>
                 </h3>
-                <div class="stats-row"><span class="label">營業額:</span><span class="val" id="weekRev">$0</span></div>
+                <div class="stats-row" id="weekRevRow"><span class="label">營業額:</span><span class="val" id="weekRev">$0</span></div>
                 <div class="stats-row" id="weekCostRow"><span class="label">總成本:</span><span class="val" id="weekCost">$0</span></div>
                 <div class="stats-row profit" id="weekProfitRow"><span class="label">淨利潤:</span><span class="val" id="weekProfit">$0</span></div>
             </div>
             <div class="stats-card month">
                 <h3>
                     <span>📅 本月統計 (<span id="statMonthLabel">--</span>)</span>
-                    <span class="customer-badge">工單/客數: <span id="monthCust">0</span></span>
+                    <span class="customer-badge">台數/客數: <span id="monthCust">0</span></span>
                 </h3>
-                <div class="stats-row"><span class="label">營業額:</span><span class="val" id="monthRev">$0</span></div>
+                <div class="stats-row" id="monthRevRow"><span class="label">營業額:</span><span class="val" id="monthRev">$0</span></div>
                 <div class="stats-row" id="monthCostRow"><span class="label">總成本:</span><span class="val" id="monthCost">$0</span></div>
                 <div class="stats-row profit" id="monthProfitRow"><span class="label">淨利潤:</span><span class="val" id="monthProfit">$0</span></div>
             </div>
             <div class="stats-card quarter">
                 <h3>
                     <span>🏆 本季統計</span>
-                    <span class="customer-badge">工單/客數: <span id="quarterCust">0</span></span>
+                    <span class="customer-badge">台數/客數: <span id="quarterCust">0</span></span>
                 </h3>
-                <div class="stats-row"><span class="label">營業額:</span><span class="val" id="quarterRev">$0</span></div>
+                <div class="stats-row" id="quarterRevRow"><span class="label">營業額:</span><span class="val" id="quarterRev">$0</span></div>
                 <div class="stats-row" id="quarterCostRow"><span class="label">總成本:</span><span class="val" id="quarterCost">$0</span></div>
                 <div class="stats-row profit" id="quarterProfitRow"><span class="label">淨利潤:</span><span class="val" id="quarterProfit">$0</span></div>
             </div>
             <div class="stats-card year">
                 <h3>
                     <span>⭐ 今年度統計 (<span id="statYearLabel">--</span>)</span>
-                    <span class="customer-badge">工單/客數: <span id="yearCust">0</span></span>
+                    <span class="customer-badge">台數/客數: <span id="yearCust">0</span></span>
                 </h3>
-                <div class="stats-row"><span class="label">營業額:</span><span class="val" id="yearRev">$0</span></div>
+                <div class="stats-row" id="yearRevRow"><span class="label">營業額:</span><span class="val" id="yearRev">$0</span></div>
                 <div class="stats-row" id="yearCostRow"><span class="label">總成本:</span><span class="val" id="yearCost">$0</span></div>
                 <div class="stats-row profit" id="yearProfitRow"><span class="label">淨利潤:</span><span class="val" id="yearProfit">$0</span></div>
             </div>
+        </div>
+    </div>
+
+    <!-- 🏍️ 新車系統專用：熱銷品牌歸類面板 (預設隱藏) -->
+    <div class="brand-stats-box hidden" id="brandStatsBox">
+        <h3>🏍️ 品牌販售台數與利潤分佈 (年度累計)</h3>
+        <div class="brand-grid" id="brandGridContainer">
+            <!-- JS 動態產出品牌統計卡片 -->
         </div>
     </div>
 
@@ -694,7 +434,7 @@
         <button class="btn-excel" id="exportBtn" onclick="exportToCSV()">📊 匯出完整 Excel (CSV)</button>
     </div>
 
-    <!-- 1️⃣ 售後維修列表區 (電腦與手機卡片) -->
+    <!-- 1️⃣ 售後維修列表區 -->
     <div id="repairRecordsContainer">
         <div class="table-container">
             <table>
@@ -714,17 +454,18 @@
         <div class="mobile-cards-list" id="mobileCardsContainer"></div>
     </div>
 
-    <!-- 2️⃣ 新車販售列表區 (電腦與手機卡片) -->
+    <!-- 2️⃣ 新車販售列表區 -->
     <div id="saleRecordsContainer" class="hidden">
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
                         <th>販售日期</th>
-                        <th>車輛身份資訊</th>
+                        <th>品牌型號/身份</th>
                         <th>車主資訊</th>
                         <th>調度/配件資訊</th>
-                        <th>販售金額</th>
+                        <th>交易車價</th>
+                        <th>實賺佣金(淨利)</th>
                         <th>操作</th>
                     </tr>
                 </thead>
@@ -737,69 +478,47 @@
 
 <script>
     const SHOP_PASSWORD = "8888"; 
-    
-    // 目前運作模式：'repair' 代表維修系統，'sale' 代表新車販售系統
     let currentSystemMode = 'repair';
 
     let repairRecords = [];
     let saleRecords = JSON.parse(localStorage.getItem('proSaleRecords')) || [];
 
-    // ==========================================
-    // 🚨 舊資料自動救援邏輯 (僅針對維修) 🚨
-    // ==========================================
+    // 資料救援機制
     try {
         let loaded = false;
         let newRecords = JSON.parse(localStorage.getItem('proRepairRecords'));
-        if (newRecords && newRecords.length > 0) {
-            repairRecords = newRecords;
-            loaded = true;
-        }
+        if (newRecords && newRecords.length > 0) { repairRecords = newRecords; loaded = true; }
         if (!loaded) {
             let backupRecords = null;
             const targetKeys = ['repairRecords', 'repair_records', 'proRepairRecords', 'records'];
             for (let k of targetKeys) {
                 let data = localStorage.getItem(k);
-                if (data) {
-                    let parsed = JSON.parse(data);
-                    if (parsed && parsed.length > 0) { backupRecords = parsed; break; }
-                }
+                if (data) { let parsed = JSON.parse(data); if (parsed && parsed.length > 0) { backupRecords = parsed; break; } }
             }
             if (backupRecords && backupRecords.length > 0) {
                 repairRecords = backupRecords.map(oldRec => {
                     let items = oldRec.items || [];
                     let totalRev = parseInt(oldRec.amount) || parseInt(oldRec.totalRev) || 0;
                     let totalCost = parseInt(oldRec.totalCost) || 0;
-                    if (items.length === 0) {
-                        items.push({ name: oldRec.details || "未細分明細", qty: 1, price: totalRev, cost: 0 });
-                    }
+                    if (items.length === 0) { items.push({ name: oldRec.details || "未細分明細", qty: 1, price: totalRev, cost: 0 }); }
                     return {
                         id: oldRec.id || Date.now() + Math.random(),
-                        plate: oldRec.plate || "",
-                        model: oldRec.model || "",
-                        phone: oldRec.phone || "",
-                        lineId: oldRec.lineId || "",
-                        mileage: oldRec.mileage || "0",
-                        date: oldRec.date || new Date().toISOString().slice(0, 10),
-                        inspectDate: oldRec.inspectDate || "",
-                        items: items,
-                        totalRev: totalRev,
-                        totalCost: totalCost
+                        plate: oldRec.plate || "", model: oldRec.model || "", phone: oldRec.phone || "",
+                        lineId: oldRec.lineId || "", mileage: oldRec.mileage || "0", date: oldRec.date || new Date().toISOString().slice(0, 10),
+                        inspectDate: oldRec.inspectDate || "", items: items, totalRev: totalRev, totalCost: totalCost
                     };
                 });
                 localStorage.setItem('proRepairRecords', JSON.stringify(repairRecords));
             }
         }
     } catch (e) { console.error(e); }
-    // ==========================================
 
     let editingRecordId = null;
     let editingSaleRecordId = null;
 
-    // 預設今天日期
     document.getElementById('repairDate').valueAsDate = new Date();
     document.getElementById('saleDate').valueAsDate = new Date();
 
-    // 取得所有操作 DOM 元素
     const repairForm = document.getElementById('repairForm');
     const saleForm = document.getElementById('saleForm');
     const itemsContainer = document.getElementById('itemsContainer');
@@ -814,6 +533,8 @@
     const saleSubmitBtn = document.getElementById('saleSubmitBtn');
     const saleCancelEditBtn = document.getElementById('saleCancelEditBtn');
     const formHeaderTitle = document.getElementById('formHeaderTitle');
+    const brandStatsBox = document.getElementById('brandStatsBox');
+    const brandGridContainer = document.getElementById('brandGridContainer');
 
     function checkPassword() {
         const input = document.getElementById('passwordInput').value;
@@ -834,21 +555,21 @@
         if (e.key === 'Enter') checkPassword();
     });
 
-    window.copyText = function(text) {
-        navigator.clipboard.writeText(text).then(() => { alert('已複製: ' + text); });
-    }
+    window.copyText = function(text) { navigator.clipboard.writeText(text).then(() => { alert('已複製: ' + text); }); }
 
-    // --- 🗂️ 雙系統分頁切換功能 ---
+    // --- 🗂️ 雙系統切換 ---
     window.switchSystemMode = function(mode) {
         currentSystemMode = mode;
-        searchInput.value = ''; // 切換時清空搜尋
+        searchInput.value = '';
 
         const repairTabBtn = document.getElementById('repairTabBtn');
         const saleTabBtn = document.getElementById('saleTabBtn');
         const statsDashboardTitle = document.getElementById('statsDashboardTitle');
+        
+        // 取得營業額、總成本相關的列元素
+        const revRows = [document.getElementById('dayRevRow'), document.getElementById('weekRevRow'), document.getElementById('monthRevRow'), document.getElementById('quarterRevRow'), document.getElementById('yearRevRow')];
         const costRows = [document.getElementById('dayCostRow'), document.getElementById('weekCostRow'), document.getElementById('monthCostRow'), document.getElementById('quarterCostRow'), document.getElementById('yearCostRow')];
-        const profitRows = [document.getElementById('dayProfitRow'), document.getElementById('weekProfitRow'), document.getElementById('monthProfitRow'), document.getElementById('quarterProfitRow'), document.getElementById('yearProfitRow')];
-
+        
         if (mode === 'repair') {
             repairTabBtn.className = "tab-btn active-repair";
             saleTabBtn.className = "tab-btn";
@@ -859,31 +580,37 @@
             saleForm.classList.add('hidden');
             document.getElementById('repairRecordsContainer').classList.remove('hidden');
             document.getElementById('saleRecordsContainer').classList.add('hidden');
-            
-            // 顯示成本與利潤欄位
+            brandStatsBox.classList.add('hidden'); // 隱藏品牌歸類
+
+            revRows.forEach(r => r.querySelector('.label').textContent = "營業額:");
             costRows.forEach(r => r.classList.remove('hidden'));
-            profitRows.forEach(r => r.classList.remove('hidden'));
             cancelSaleEditMode();
         } else {
             repairTabBtn.className = "tab-btn";
             saleTabBtn.className = "tab-btn active-sale";
             formHeaderTitle.innerHTML = "🏍️ 新車販售交易紀錄系統";
-            statsDashboardTitle.innerHTML = "📊 新車販售財務營業額與來客數統計面板";
+            statsDashboardTitle.innerHTML = "📊 新車販售財務佣金利潤與台數統計面板";
 
             repairForm.classList.add('hidden');
             saleForm.classList.remove('hidden');
             document.getElementById('repairRecordsContainer').classList.add('hidden');
             document.getElementById('saleRecordsContainer').classList.remove('hidden');
-            
-            // 新車販售無輸入單獨成本時，隱藏總成本與淨利欄（只看營業額與新車客數）
+            brandStatsBox.classList.remove('hidden'); // 顯示品牌歸類
+
+            // 針對新車販售，將原「營業額」列改為呈現「淨利潤(佣金)」，並隱藏原有的成本列
+            revRows.forEach(r => r.querySelector('.label').textContent = "淨利潤(佣金):");
             costRows.forEach(r => r.classList.add('hidden'));
-            profitRows.forEach(r => r.classList.add('hidden'));
+            document.getElementById('dayProfitRow').classList.add('hidden');
+            document.getElementById('weekProfitRow').classList.add('hidden');
+            document.getElementById('monthProfitRow').classList.add('hidden');
+            document.getElementById('quarterProfitRow').classList.add('hidden');
+            document.getElementById('yearProfitRow').classList.add('hidden');
             cancelEditMode();
         }
         renderRecords();
     }
 
-    // --- 🔧 維修項目零件動態新增與手動計算 ---
+    // 動態零件行
     window.addItemRow = function() {
         const row = document.createElement('div');
         row.className = 'item-row';
@@ -898,45 +625,39 @@
     }
 
     window.removeItemRow = function(btn) {
-        if (itemsContainer.getElementsByClassName('item-row').length > 1) {
-            btn.parentElement.remove();
-        } else { alert('最少填寫一項！'); }
+        if (itemsContainer.getElementsByClassName('item-row').length > 1) { btn.parentElement.remove(); } else { alert('最少填寫一項！'); }
     }
 
     window.calculateFormPreview = function() {
-        let formTotalRev = 0;
-        let formTotalCost = 0;
+        let formTotalRev = 0; let formTotalCost = 0;
         const rows = itemsContainer.getElementsByClassName('item-row');
         for (let row of rows) {
             const qty = parseInt(row.querySelector('.item-qty').value) || 0;
             const price = parseInt(row.querySelector('.item-price').value) || 0;
             const cost = parseInt(row.querySelector('.item-cost').value) || 0;
-            formTotalRev += qty * price;
-            formTotalCost += qty * cost;
+            formTotalRev += qty * price; formTotalCost += qty * cost;
         }
         document.getElementById('formTotalRev').textContent = formTotalRev.toLocaleString();
         document.getElementById('formTotalCost').textContent = formTotalCost.toLocaleString();
         document.getElementById('formTotalProfit').textContent = (formTotalRev - formTotalCost).toLocaleString();
     }
 
-    // --- 📊 大財務與來客數統計面板核心引擎 (支援雙系統獨立切換計算) ---
+    // --- 📊 財務、台數、各品牌分佈大計算機 ---
     function calculateFinanceDashboard() {
         const today = new Date();
         const todayStr = today.toISOString().slice(0, 10);
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth() + 1;
+        const currentQuarter = Math.ceil(currentMonth / 3);
         
         document.getElementById('statDayLabel').textContent = todayStr.substring(5, 10);
         document.getElementById('statMonthLabel').textContent = todayStr.substring(0, 7);
-        document.getElementById('statYearLabel').textContent = today.getFullYear() + "年";
+        document.getElementById('statYearLabel').textContent = currentYear + "年";
 
         const currentDay = today.getDay(); 
         const distanceToMonday = currentDay === 0 ? 6 : currentDay - 1; 
-        const monday = new Date(today);
-        monday.setDate(today.getDate() - distanceToMonday);
-        monday.setHours(0,0,0,0);
-        
-        const sunday = new Date(monday);
-        sunday.setDate(monday.getDate() + 6);
-        sunday.setHours(23,59,59,999);
+        const monday = new Date(today); monday.setDate(today.getDate() - distanceToMonday); monday.setHours(0,0,0,0);
+        const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); sunday.setHours(23,59,59,999);
 
         let dRev = 0, dCost = 0, dCust = 0;
         let wRev = 0, wCost = 0, wCust = 0;
@@ -944,85 +665,114 @@
         let qRev = 0, qCost = 0, qCust = 0;
         let yRev = 0, yCost = 0, yCust = 0;
 
-        const currentYear = today.getFullYear();
-        const currentMonth = today.getMonth() + 1;
-        const currentQuarter = Math.ceil(currentMonth / 3);
+        // 品牌歸類初始物件
+        const brandStats = {
+            "光陽": { count: 0, profit: 0 },
+            "三陽": { count: 0, profit: 0 },
+            "山葉": { count: 0, profit: 0 },
+            "比雅久": { count: 0, profit: 0 },
+            "台鈴": { count: 0, profit: 0 },
+            "宏佳騰": { count: 0, profit: 0 },
+            "其他": { count: 0, profit: 0 }
+        };
 
-        // 根據目前切換的系統，決定去跑哪一個資料庫的迴圈
-        const sourceData = (currentSystemMode === 'repair') ? repairRecords : saleRecords;
+        if (currentSystemMode === 'repair') {
+            // 維修計算
+            repairRecords.forEach(record => {
+                const rDateStr = record.date; if(!rDateStr) return;
+                const rDate = new Date(rDateStr);
+                const rev = parseInt(record.totalRev) || 0;
+                const cost = parseInt(record.totalCost) || 0;
 
-        sourceData.forEach(record => {
-            const rDateStr = record.date;
-            if(!rDateStr) return;
-            const rDate = new Date(rDateStr);
-            const rYear = rDate.getFullYear();
-            const rMonth = rDate.getMonth() + 1;
-            const rQuarter = Math.ceil(rMonth / 3);
-            
-            // 如果是維修拿 totalRev，如果是販售拿 saleAmount
-            const rev = parseInt(record.totalRev) || parseInt(record.saleAmount) || 0;
-            const cost = parseInt(record.totalCost) || 0;
+                if (rDateStr === todayStr) { dRev += rev; dCost += cost; dCust++; }
+                if (rDate >= monday && rDate <= sunday) { wRev += rev; wCost += cost; wCust++; }
+                if (rDate.getFullYear() === currentYear && (rDate.getMonth() + 1) === currentMonth) { mRev += rev; mCost += cost; mCust++; }
+                if (rDate.getFullYear() === currentYear && Math.ceil((rDate.getMonth() + 1) / 3) === currentQuarter) { qRev += rev; qCost += cost; qCust++; }
+                if (rDate.getFullYear() === currentYear) { yRev += rev; yCost += cost; yCust++; }
+            });
 
-            if (rDateStr === todayStr) { dRev += rev; dCost += cost; dCust++; }
-            if (rDate >= monday && rDate <= sunday) { wRev += rev; wCost += cost; wCust++; }
-            if (rYear === currentYear && rMonth === currentMonth) { mRev += rev; mCost += cost; mCust++; }
-            if (rYear === currentYear && rQuarter === currentQuarter) { qRev += rev; qCost += cost; qCust++; }
-            if (rYear === currentYear) { yRev += rev; yCost += cost; yCust++; }
-        });
+            document.getElementById('dayCost').textContent = `$${dCost.toLocaleString()}`;
+            document.getElementById('dayProfit').textContent = `$${(dRev - dCost).toLocaleString()}`;
+            document.getElementById('weekCost').textContent = `$${wCost.toLocaleString()}`;
+            document.getElementById('weekProfit').textContent = `$${(wRev - wCost).toLocaleString()}`;
+            document.getElementById('monthCost').textContent = `$${mCost.toLocaleString()}`;
+            document.getElementById('monthProfit').textContent = `$${(mRev - mCost).toLocaleString()}`;
+            document.getElementById('quarterCost').textContent = `$${qCost.toLocaleString()}`;
+            document.getElementById('quarterProfit').textContent = `$${(qRev - qCost).toLocaleString()}`;
+            document.getElementById('yearCost').textContent = `$${yCost.toLocaleString()}`;
+            document.getElementById('yearProfit').textContent = `$${(yRev - yCost).toLocaleString()}`;
+        } else {
+            // 新車販售計算（只看佣金=淨利潤，營業額欄位顯示佣金）
+            saleRecords.forEach(record => {
+                const rDateStr = record.date; if(!rDateStr) return;
+                const rDate = new Date(rDateStr);
+                const rYear = rDate.getFullYear();
+                const佣金 = parseInt(record.saleCommission) || 0;
 
-        // 渲染數據到畫面上
+                if (rDateStr === todayStr) { dRev += 佣金; dCust++; }
+                if (rDate >= monday && rDate <= sunday) { wRev += 佣金; wCust++; }
+                if (rYear === currentYear && (rDate.getMonth() + 1) === currentMonth) { mRev += 佣金; mCust++; }
+                if (rYear === currentYear && Math.ceil((rDate.getMonth() + 1) / 3) === currentQuarter) { qRev += 佣金; qCust++; }
+                if (rYear === currentYear) { yRev += 佣金; yCust++; }
+
+                // 統計今年度品牌數據歸類
+                if (rYear === currentYear) {
+                    let b = record.saleBrand;
+                    if (brandStats[b] !== undefined) {
+                        brandStats[b].count++;
+                        brandStats[b].profit += 佣金;
+                    } else {
+                        brandStats["其他"].count++;
+                        brandStats["其他"].profit += 佣金;
+                    }
+                }
+            });
+
+            // 渲染新車販售品牌分佈 HTML 面板
+            brandGridContainer.innerHTML = '';
+            for (let b in brandStats) {
+                const card = document.createElement('div');
+                card.className = 'brand-card';
+                card.innerHTML = `
+                    <div class="brand-title">${b}</div>
+                    <div class="brand-count">${brandStats[b].count} 台</div>
+                    <div class="brand-profit">$${brandStats[b].profit.toLocaleString()}</div>
+                `;
+                brandGridContainer.appendChild(card);
+            }
+        }
+
+        // 共通渲染營業額(維修為總收，新車為佣金) 與 台數客數
         document.getElementById('dayRev').textContent = `$${dRev.toLocaleString()}`;
-        document.getElementById('dayCost').textContent = `$${dCost.toLocaleString()}`;
-        document.getElementById('dayProfit').textContent = `$${(dRev - dCost).toLocaleString()}`;
         document.getElementById('dayCust').textContent = dCust;
-
         document.getElementById('weekRev').textContent = `$${wRev.toLocaleString()}`;
-        document.getElementById('weekCost').textContent = `$${wCost.toLocaleString()}`;
-        document.getElementById('weekProfit').textContent = `$${(wRev - wCost).toLocaleString()}`;
         document.getElementById('weekCust').textContent = wCust;
-
         document.getElementById('monthRev').textContent = `$${mRev.toLocaleString()}`;
-        document.getElementById('monthCost').textContent = `$${mCost.toLocaleString()}`;
-        document.getElementById('monthProfit').textContent = `$${(mRev - mCost).toLocaleString()}`;
         document.getElementById('monthCust').textContent = mCust;
-
         document.getElementById('quarterRev').textContent = `$${qRev.toLocaleString()}`;
-        document.getElementById('quarterCost').textContent = `$${qCost.toLocaleString()}`;
-        document.getElementById('quarterProfit').textContent = `$${(qRev - qCost).toLocaleString()}`;
         document.getElementById('quarterCust').textContent = qCust;
-
         document.getElementById('yearRev').textContent = `$${yRev.toLocaleString()}`;
-        document.getElementById('yearCost').textContent = `$${yCost.toLocaleString()}`;
-        document.getElementById('yearProfit').textContent = `$${(yRev - yCost).toLocaleString()}`;
         document.getElementById('yearCust').textContent = yCust;
     }
 
-    // --- 🖥️ 渲染雙系統列表數據 ---
+    // --- 🖥️ 渲染數據列表與卡片 ---
     function renderRecords(filterText = '') {
         const text = filterText.toLowerCase();
 
         if (currentSystemMode === 'repair') {
-            // 🔧 渲染維修系統
-            recordTableBody.innerHTML = '';
-            mobileCardsContainer.innerHTML = '';
-
-            const filtered = repairRecords.filter(rec => {
-                return rec.plate.toLowerCase().includes(text) || rec.model.toLowerCase().includes(text) || rec.phone.toLowerCase().includes(text) || rec.items.some(i => i.name.toLowerCase().includes(text));
-            });
+            recordTableBody.innerHTML = ''; mobileCardsContainer.innerHTML = '';
+            const filtered = repairRecords.filter(rec => rec.plate.toLowerCase().includes(text) || rec.model.toLowerCase().includes(text) || rec.phone.toLowerCase().includes(text) || rec.items.some(i => i.name.toLowerCase().includes(text)));
 
             if (filtered.length === 0) {
                 recordTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#7f8c8d;">無維修紀錄</td></tr>`;
                 mobileCardsContainer.innerHTML = `<div style="text-align:center; color:#7f8c8d; padding:20px;">無維修紀錄</div>`;
-                calculateFinanceDashboard();
-                return;
+                calculateFinanceDashboard(); return;
             }
-
             filtered.forEach(record => {
                 const profit = record.totalRev - record.totalCost;
                 let itemsTextList = record.items.map(item => `• ${item.name} x${item.qty} ($${parseInt(item.price).toLocaleString()})`).join('<br>');
                 let inspectText = record.inspectDate ? `<br><span style="color:var(--warning-color); font-weight:bold; font-size:0.75rem;">🔍 下次驗車: ${record.inspectDate}</span>` : '';
 
-                // 電腦版
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><strong>${record.date}</strong></td>
@@ -1030,14 +780,10 @@
                     <td>手機: ${record.phone ? `<a href="tel:${record.phone}">${record.phone}</a>` : '無'}<br>LINE: ${record.lineId ? `${record.lineId}` : '無'}${inspectText}</td>
                     <td><div style="max-height:100px; overflow-y:auto;">${itemsTextList}</div></td>
                     <td>實收: $${parseInt(record.totalRev).toLocaleString()}<br>淨利: <span style="color:var(--success-color);font-weight:bold;">$${profit.toLocaleString()}</span></td>
-                    <td>
-                        <button class="btn-action-edit" onclick="startEditRecord(${record.id})">✏️ 編輯</button>
-                        <button class="btn-delete" onclick="deleteRecord(${record.id})">刪除</button>
-                    </td>
+                    <td><button class="btn-action-edit" style="background-color:var(--info-color);" onclick="startEditRecord(${record.id})">✏️ 編輯</button><button class="btn-delete" onclick="deleteRecord(${record.id})">刪除</button></td>
                 `;
                 recordTableBody.appendChild(row);
 
-                // 手機版
                 const card = document.createElement('div');
                 card.className = 'mobile-card';
                 card.innerHTML = `
@@ -1047,67 +793,55 @@
                     ${record.inspectDate ? `<div class="card-row" style="color:var(--warning-color); font-weight:bold;"><span class="label">下次驗車:</span><span class="value">🔍 ${record.inspectDate}</span></div>` : ''}
                     <div class="card-items"><strong>維修明細：</strong><br>${itemsTextList}</div>
                     <div class="card-row" style="background:#eefdfa; padding:5px; border-radius:4px;"><span class="label">實收: <strong>$${parseInt(record.totalRev).toLocaleString()}</strong></span><span class="value" style="color:var(--success-color);">淨利: <strong>$${profit.toLocaleString()}</strong></span></div>
-                    <div class="card-footer"><span style="color:#7f8c8d; font-size:0.8rem;">成本: $${parseInt(record.totalCost).toLocaleString()}</span><div><button class="btn-action-edit" onclick="startEditRecord(${record.id})">✏️ 編輯</button><button class="btn-delete" onclick="deleteRecord(${record.id})">🗑️ 刪除</button></div></div>
+                    <div class="card-footer"><span>成本: $${parseInt(record.totalCost).toLocaleString()}</span><div><button class="btn-action-edit" style="background-color:var(--info-color);" onclick="startEditRecord(${record.id})">✏️ 編輯</button><button class="btn-delete" onclick="deleteRecord(${record.id})">🗑️ 刪除</button></div></div>
                 `;
                 mobileCardsContainer.appendChild(card);
             });
-
         } else {
-            // 🏍️ 渲染新車販售系統
-            saleRecordTableBody.innerHTML = '';
-            mobileSaleCardsContainer.innerHTML = '';
-
-            const filtered = saleRecords.filter(rec => {
-                return rec.salePlate.toLowerCase().includes(text) || rec.saleModel.toLowerCase().includes(text) || rec.saleOwnerName.toLowerCase().includes(text) || rec.saleBrand.toLowerCase().includes(text) || rec.saleEngine.toLowerCase().includes(text);
-            });
+            // 新車販售列表渲染
+            saleRecordTableBody.innerHTML = ''; mobileSaleCardsContainer.innerHTML = '';
+            const filtered = saleRecords.filter(rec => rec.salePlate.toLowerCase().includes(text) || rec.saleModel.toLowerCase().includes(text) || rec.saleOwnerName.toLowerCase().includes(text) || rec.saleBrand.toLowerCase().includes(text) || rec.saleEngine.toLowerCase().includes(text));
 
             if (filtered.length === 0) {
-                saleRecordTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#7f8c8d;">無新車販售紀錄</td></tr>`;
+                saleRecordTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#7f8c8d;">無新車販售紀錄</td></tr>`;
                 mobileSaleCardsContainer.innerHTML = `<div style="text-align:center; color:#7f8c8d; padding:20px;">無新車販售紀錄</div>`;
-                calculateFinanceDashboard();
-                return;
+                calculateFinanceDashboard(); return;
             }
-
             filtered.forEach(record => {
-                // 電腦版表格
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><strong>${record.date}</strong></td>
-                    <td>品牌: ${record.saleBrand}<br>型號: <strong>${record.saleModel}</strong><br>車牌: <span style="color:var(--sale-color); font-weight:bold;">${record.salePlate.toUpperCase() || '代辦中'}</span><br>引擎號: ${record.saleEngine}</td>
-                    <td>車主: <strong>${record.saleOwnerName}</strong><br>電話: <a href="tel:${record.salePhone}">${record.salePhone}</a></td>
-                    <td>調度車行: ${record.saleDealer || '自備/無'}<br><div style="font-size:0.75rem; color:#7f8c8d; margin-top:5px; background:#f7fafc; padding:4px; border-radius:4px;">🎁 配件: ${record.saleAccessories || '無'}</div></td>
-                    <td><span style="font-size:1rem; font-weight:bold; color:var(--primary-color);">$${parseInt(record.saleAmount).toLocaleString()}</span></td>
+                    <td>品牌: <strong>${record.saleBrand}</strong><br>型號: ${record.saleModel}<br>車牌: <span style="color:var(--sale-color); font-weight:bold;">${record.salePlate.toUpperCase() || '代辦中'}</span></td>
+                    <td>引擎號: ${record.saleEngine}<br>車主: <strong>${record.saleOwnerName}</strong><br>電話: <a href="tel:${record.salePhone}">${record.salePhone}</a></td>
+                    <td>調度來源: ${record.saleDealer || '無'}<br><div style="font-size:0.75rem; color:#7f8c8d; max-width:180px;">🎁 配件: ${record.saleAccessories || '無'}</div></td>
+                    <td>$${parseInt(record.saleAmount || 0).toLocaleString()}</td>
+                    <td><span style="font-size:0.95rem; font-weight:bold; color:var(--success-color);">$${parseInt(record.saleCommission).toLocaleString()}</span></td>
                     <td>
-                        <button class="btn-action-edit" style="background-color:var(--sale-color);" onclick="startEditSaleRecord(${record.id})">✏️ 編輯</button>
-                        <button class="btn-delete" onclick="deleteSaleRecord(${record.id})">刪除</button>
+                        <button class="btn-action-edit" style="background-color:var(--sale-color);" onclick="startEditSaleRecord(${record.id})">✏️ 編輯</button><button class="btn-delete" onclick="deleteSaleRecord(${record.id})">刪除</button>
                     </td>
                 `;
                 saleRecordTableBody.appendChild(row);
 
-                // 手機版卡片
                 const card = document.createElement('div');
                 card.className = 'mobile-card';
                 card.style.borderTop = "4px solid var(--sale-color)";
                 card.innerHTML = `
                     <div class="card-header"><span class="card-plate" style="color:var(--sale-color);">🏍️ ${record.saleBrand} ${record.saleModel}</span><span class="card-date">📅 ${record.date}</span></div>
-                    <div class="card-row"><span class="label">車牌 / 引擎號:</span><span class="value">${record.salePlate.toUpperCase() || '代辦中'} / ${record.saleEngine}</span></div>
+                    <div class="card-row"><span class="label">車牌 / 引擎:</span><span class="value">${record.salePlate.toUpperCase() || '代辦中'} / ${record.saleEngine}</span></div>
                     <div class="card-row"><span class="label">車主 / 電話:</span><span class="value">${record.saleOwnerName} (<a class="btn-action-phone" href="tel:${record.salePhone}">📞 撥打</a>)</span></div>
-                    <div class="card-row"><span class="label">調度管道:</span><span class="value">${record.saleDealer || '無'}</span></div>
-                    <div class="card-items" style="background:#fdf2fa; color:#6c3483;"><strong>🎁 贈送配件明細：</strong><br>${record.saleAccessories || '無隨車配件'}</div>
-                    <div class="card-row" style="font-size: 1.05rem; background:#faf0fc; padding: 6px; border-radius:4px;"><span class="label" style="color:var(--sale-color);">販售總計:</span><span class="value" style="color:var(--sale-color);">$${parseInt(record.saleAmount).toLocaleString()}</span></div>
+                    <div class="card-items" style="background:#fdf2fa; color:#6c3483;"><strong>🎁 贈送配件明細：</strong><br>${record.saleAccessories || '無'}</div>
+                    <div class="card-row" style="background:#faf0fc; padding: 6px; border-radius:4px;"><span class="label">車價: $${parseInt(record.saleAmount || 0).toLocaleString()}</span><span class="value" style="color:var(--success-color); font-size: 0.95rem;">實賺佣金: <strong>$${parseInt(record.saleCommission).toLocaleString()}</strong></span></div>
                     <div class="card-footer" style="justify-content: flex-end;">
-                        <button class="btn-action-edit" style="background-color:var(--sale-color);" onclick="startEditSaleRecord(${record.id})">✏️ 編輯</button>
-                        <button class="btn-delete" onclick="deleteSaleRecord(${record.id})">🗑️ 刪除</button>
+                        <button class="btn-action-edit" style="background-color:var(--sale-color);" onclick="startEditSaleRecord(${record.id})">✏️ 編輯</button><button class="btn-delete" onclick="deleteSaleRecord(${record.id})">🗑️ 刪除</button>
                     </div>
                 `;
                 mobileSaleCardsContainer.appendChild(card);
             });
         }
-
         calculateFinanceDashboard();
     }
 
-    // --- 💾 維修系統：表單新增與修改邏輯 ---
+    // --- 🔧 維修表單事件 ---
     repairForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const items = []; let totalRev = 0; let totalCost = 0;
@@ -1117,38 +851,28 @@
             const qty = parseInt(row.querySelector('.item-qty').value) || 0;
             const price = parseInt(row.querySelector('.item-price').value) || 0;
             const cost = parseInt(row.querySelector('.item-cost').value) || 0;
-            items.push({ name, qty, price, cost });
-            totalRev += qty * price; totalCost += qty * cost;
+            items.push({ name, qty, price, cost }); totalRev += qty * price; totalCost += qty * cost;
         }
 
         const dataObj = {
-            plate: document.getElementById('carPlate').value,
-            model: document.getElementById('carModel').value,
-            phone: document.getElementById('ownerPhone').value,
-            lineId: document.getElementById('lineId').value,
-            mileage: document.getElementById('mileage').value,
-            date: document.getElementById('repairDate').value,
-            inspectDate: document.getElementById('inspectDate').value,
-            items: items, totalRev: totalRev, totalCost: totalCost
+            plate: document.getElementById('carPlate').value, model: document.getElementById('carModel').value,
+            phone: document.getElementById('ownerPhone').value, lineId: document.getElementById('lineId').value,
+            mileage: document.getElementById('mileage').value, date: document.getElementById('repairDate').value,
+            inspectDate: document.getElementById('inspectDate').value, items: items, totalRev: totalRev, totalCost: totalCost
         };
 
         if (editingRecordId !== null) {
             repairRecords = repairRecords.map(rec => rec.id === editingRecordId ? { ...rec, ...dataObj } : rec);
             alert('✅ 維修紀錄更新成功！');
-        } else {
-            dataObj.id = Date.now();
-            repairRecords.unshift(dataObj);
-        }
+        } else { dataObj.id = Date.now(); repairRecords.unshift(dataObj); }
 
         localStorage.setItem('proRepairRecords', JSON.stringify(repairRecords));
-        cancelEditMode();
-        renderRecords();
+        cancelEditMode(); renderRecords();
     });
 
     window.startEditRecord = function(id) {
         const record = repairRecords.find(rec => rec.id === id); if (!record) return;
-        editingRecordId = id;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        editingRecordId = id; window.scrollTo({ top: 0, behavior: 'smooth' });
 
         repairForm.classList.add('editing-mode');
         formHeaderTitle.innerHTML = `✏️ 正在修改維修：車牌 ${record.plate.toUpperCase()}`;
@@ -1166,8 +890,7 @@
 
         itemsContainer.innerHTML = '';
         record.items.forEach(item => {
-            const row = document.createElement('div');
-            row.className = 'item-row';
+            const row = document.createElement('div'); row.className = 'item-row';
             row.innerHTML = `
                 <input type="text" placeholder="零件名稱" required class="item-name" value="${item.name}">
                 <input type="number" placeholder="數量" min="1" required class="item-qty" value="${item.qty}">
@@ -1181,13 +904,10 @@
     }
 
     window.cancelEditMode = function() {
-        editingRecordId = null;
-        repairForm.classList.remove('editing-mode');
+        editingRecordId = null; repairForm.classList.remove('editing-mode');
         formHeaderTitle.innerHTML = currentSystemMode === 'repair' ? "🚗 店內車輛維修紀錄系統" : "🏍️ 新車販售交易紀錄系統";
-        submitBtn.textContent = "💾 儲存並新增此筆維修紀錄";
-        submitBtn.className = "btn-submit";
-        cancelEditBtn.classList.add('hidden');
-        repairForm.reset();
+        submitBtn.textContent = "💾 儲存並新增此筆維修紀錄"; submitBtn.className = "btn-submit";
+        cancelEditBtn.classList.add('hidden'); repairForm.reset();
         document.getElementById('repairDate').valueAsDate = new Date();
         itemsContainer.innerHTML = `
             <div class="item-row">
@@ -1198,25 +918,20 @@
                 <button type="button" class="btn-remove-item" onclick="removeItemRow(this)">✖ 刪除</button>
             </div>
         `;
-        document.getElementById('formTotalRev').textContent = "0";
-        document.getElementById('formTotalCost').textContent = "0";
-        document.getElementById('formTotalProfit').textContent = "0";
+        document.getElementById('formTotalRev').textContent = "0"; document.getElementById('formTotalCost').textContent = "0"; document.getElementById('formTotalProfit').textContent = "0";
     }
 
     window.deleteRecord = function(id) {
         if (confirm('確定要刪除這筆維修紀錄嗎？')) {
             if (editingRecordId === id) cancelEditMode();
             repairRecords = repairRecords.filter(rec => rec.id !== id);
-            localStorage.setItem('proRepairRecords', JSON.stringify(repairRecords));
-            renderRecords();
+            localStorage.setItem('proRepairRecords', JSON.stringify(repairRecords)); renderRecords();
         }
     }
 
-
-    // --- 🏍️ 新車販售系統：表單新增與修改邏輯 ---
+    // --- 🏍️ 新車販售事件 ---
     saleForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        
         const dataObj = {
             saleBrand: document.getElementById('saleBrand').value,
             saleModel: document.getElementById('saleModel').value,
@@ -1226,29 +941,24 @@
             salePhone: document.getElementById('salePhone').value,
             date: document.getElementById('saleDate').value,
             saleAmount: parseInt(document.getElementById('saleAmount').value) || 0,
+            saleCommission: parseInt(document.getElementById('saleCommission').value) || 0,
             saleDealer: document.getElementById('saleDealer').value,
             saleAccessories: document.getElementById('saleAccessories').value,
-            totalRev: parseInt(document.getElementById('saleAmount').value) || 0, // 財務統計用一對一欄位映射
-            totalCost: 0
+            totalRev: 0, totalCost: 0 // 結構相容
         };
 
         if (editingSaleRecordId !== null) {
             saleRecords = saleRecords.map(rec => rec.id === editingSaleRecordId ? { ...rec, ...dataObj } : rec);
             alert('✅ 新車販售紀錄更新成功！');
-        } else {
-            dataObj.id = Date.now();
-            saleRecords.unshift(dataObj);
-        }
+        } else { dataObj.id = Date.now(); saleRecords.unshift(dataObj); }
 
         localStorage.setItem('proSaleRecords', JSON.stringify(saleRecords));
-        cancelSaleEditMode();
-        renderRecords();
+        cancelSaleEditMode(); renderRecords();
     });
 
     window.startEditSaleRecord = function(id) {
         const record = saleRecords.find(rec => rec.id === id); if (!record) return;
-        editingSaleRecordId = id;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        editingSaleRecordId = id; window.scrollTo({ top: 0, behavior: 'smooth' });
 
         saleForm.classList.add('editing-mode');
         formHeaderTitle.innerHTML = `✏️ 正在修改販售：${record.saleBrand} ${record.saleModel}`;
@@ -1263,17 +973,16 @@
         document.getElementById('salePhone').value = record.salePhone;
         document.getElementById('saleDate').value = record.date;
         document.getElementById('saleAmount').value = record.saleAmount;
+        document.getElementById('saleCommission').value = record.saleCommission;
         document.getElementById('saleDealer').value = record.saleDealer;
         document.getElementById('saleAccessories').value = record.saleAccessories;
     }
 
     window.cancelSaleEditMode = function() {
-        editingSaleRecordId = null;
-        saleForm.classList.remove('editing-mode');
+        editingSaleRecordId = null; saleForm.classList.remove('editing-mode');
         formHeaderTitle.innerHTML = currentSystemMode === 'repair' ? "🚗 店內車輛維修紀錄系統" : "🏍️ 新車販售交易紀錄系統";
         saleSubmitBtn.textContent = "🏍️ 儲存並新增此筆新車販售紀錄";
-        saleCancelEditBtn.classList.add('hidden');
-        saleForm.reset();
+        saleCancelEditBtn.classList.add('hidden'); saleForm.reset();
         document.getElementById('saleDate').valueAsDate = new Date();
     }
 
@@ -1281,13 +990,11 @@
         if (confirm('確定要刪除這筆新車交易紀錄嗎？')) {
             if (editingSaleRecordId === id) cancelSaleEditMode();
             saleRecords = saleRecords.filter(rec => rec.id !== id);
-            localStorage.setItem('proSaleRecords', JSON.stringify(saleRecords));
-            renderRecords();
+            localStorage.setItem('proSaleRecords', JSON.stringify(saleRecords)); renderRecords();
         }
     }
 
-
-    // --- 📊 匯出對應系統 Excel 報表 ---
+    // Excel 匯出
     window.exportToCSV = function() {
         if (currentSystemMode === 'repair') {
             if (repairRecords.length === 0) { alert('沒有維修資料可匯出'); return; }
@@ -1299,9 +1006,9 @@
             downloadBlob(csvContent, `售後維修報表_${new Date().toISOString().slice(0,10)}.csv`);
         } else {
             if (saleRecords.length === 0) { alert('沒有新車販售資料可匯出'); return; }
-            let csvContent = "\uFEFF販售日期,品牌,型號,車牌號碼,引擎號碼,車主姓名,行動電話,販售金額,調度車行,贈送配件明細\n";
+            let csvContent = "\uFEFF販售日期,品牌,型號,車牌號碼,引擎號碼,車主姓名,行動電話,車價金額,實賺佣金(淨利),調度車行,贈送配件明細\n";
             saleRecords.forEach(rec => {
-                csvContent += `"${rec.date}","${rec.saleBrand}","${rec.saleModel}","${rec.salePlate.toUpperCase()}","${rec.saleEngine}","${rec.saleOwnerName}","${rec.salePhone}",${rec.saleAmount},"${rec.saleDealer}","${rec.saleAccessories.replace(/\n/g, ' ')}"\n`;
+                csvContent += `"${rec.date}","${rec.saleBrand}","${rec.saleModel}","${rec.salePlate.toUpperCase()}","${rec.saleEngine}","${rec.saleOwnerName}","${rec.salePhone}",${rec.saleAmount},${rec.saleCommission},"${rec.saleDealer}","${rec.saleAccessories.replace(/\n/g, ' ')}"\n`;
             });
             downloadBlob(csvContent, `新車販售報表_${new Date().toISOString().slice(0,10)}.csv`);
         }
@@ -1310,8 +1017,7 @@
     function downloadBlob(content, filename) {
         const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url); link.setAttribute("download", filename);
+        const link = document.createElement("a"); link.setAttribute("href", url); link.setAttribute("download", filename);
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 
